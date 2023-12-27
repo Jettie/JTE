@@ -39,6 +39,7 @@ JTE_TEXT_PARRYCOUNTDETAILSSPELL = "技能: "
 JTE_TEXT_PARRYCOUNTDETAILSSWING = "普攻: "
 JTE_TEXT_PARRYCOUNTDETAILSTIMES = " 次 "
 JTE_TEXT_PARRYCOUNTDETAILSCOMBATTIME = "用时 "
+JTE_TEXT_PARRYCOUNTINACTIVE = "本次战斗未统计: 攻击少于10次"
 
 --bindings support
 BINDING_HEADER_JTE_BINDINGS = "JTE HotKeys"
@@ -78,6 +79,7 @@ if (GetLocale() ~= "zhCN") then
 	JTE_TEXT_PARRYCOUNTDETAILSSWING = "Swing: "
 	JTE_TEXT_PARRYCOUNTDETAILSTIMES = " times. "
 	JTE_TEXT_PARRYCOUNTDETAILSCOMBATTIME = "Time: "
+	JTE_TEXT_PARRYCOUNTINACTIVE = "Inactive: Less than 10 attacks"
 
 	BINDING_HEADER_JTE_BINDINGS = "JTE HotKeys"
 	BINDING_NAME_JTE_ITEMRACK_SET_TOGGLE = "Toggle ItemRack"
@@ -146,14 +148,13 @@ function JTE_OnLoad()
 	this:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
 	this:RegisterEvent("CHAT_MSG_COMBAT_SELF_HITS")
 	this:RegisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
-
-	DEFAULT_CHAT_FRAME:AddMessage("JTE loaded.");
+	
 	SLASH_JTE1 = "/jte";
 	SlashCmdList["JTE"] = function(msg)
 		JTE_SlashCommandHandler(msg);
 	end
-	JTE_CheckEquip()
 	_G.LoggingCombat(true)
+	DEFAULT_CHAT_FRAME:AddMessage("JTE loaded.");
 end
 
 --招架统计初始化
@@ -161,24 +162,30 @@ local JTE_CombatStartTime = time()
 local JTE_CombatEndTime = time()
 local JTE_SwingParryCount = 0
 local JTE_SkillParryCount = 0
+local JTE_TotalAttackSwing = 0
+local JTE_TotalAttackSpell = 0
 function JTE_ParryCountInit()
 	JTE_CombatStartTime = time()
 	JTE_SwingParryCount = 0
 	JTE_SkillParryCount = 0
+	JTE_TotalAttackSwing = 0
+	JTE_TotalAttackSpell = 0
 end
 --招架统计战斗结束时
 
 function JTE_ParryCountWhenCombatEnd()
 	JTE_CombatEndTime = time()
-	local total = JTE_SwingParryCount + JTE_SkillParryCount
+	local totalParry = JTE_SwingParryCount + JTE_SkillParryCount
+	local totalAttack = JTE_TotalAttackSwing + JTE_TotalAttackSpell
     local rate
-    if total <= 0 then
+
+    if totalParry <= 0 then
         rate = JTE_TEXT_PARRYCOUNTPERFECT
     else 
-        if total <=3 then
+        if totalParry <=3 then
             rate = JTE_TEXT_PARRYCOUNTNORMAL
         else 
-            if total <=6 then
+            if totalParry <=6 then
                 rate = JTE_TEXT_PARRYCOUNTBAD
             else
                 rate = JTE_TEXT_PARRYCOUNTTERRIBLE
@@ -188,22 +195,27 @@ function JTE_ParryCountWhenCombatEnd()
 
 	if JTE_CombatEndTime > 0 and JTE_CombatStartTime > 0 then
 		local combatTime = JTE_CombatEndTime - JTE_CombatStartTime
-		local msgtext = JTE_PARRYCOUNTHEADER..JTE_PARRYCOUNTLASTCOMBAT..total..JTE_TEXT_PARRYCOUNTDETAILSTIMES.." - "..rate.." ( "..JTE_TEXT_PARRYCOUNTDETAILSSPELL..JTE_SkillParryCount.." "..JTE_TEXT_PARRYCOUNTDETAILSSWING..JTE_SwingParryCount.." "..JTE_TEXT_PARRYCOUNTDETAILSCOMBATTIME..combatTime.." ) "
-		if combatTime > 120 then
-			--团队通报
-			if GetNumRaidMembers() > 0 then
-				SendChatMessage(msgtext, "RAID")
-			else
-				--DEFAULT_CHAT_FRAME:AddMessage(msgtext)
-				SendChatMessage(msgtext, "SAY")
+		local msgtext = JTE_PARRYCOUNTHEADER..JTE_PARRYCOUNTLASTCOMBAT..totalParry..JTE_TEXT_PARRYCOUNTDETAILSTIMES.." - "..rate.." ( "..JTE_TEXT_PARRYCOUNTDETAILSSPELL..JTE_SkillParryCount.." "..JTE_TEXT_PARRYCOUNTDETAILSSWING..JTE_SwingParryCount.." "..JTE_TEXT_PARRYCOUNTDETAILSCOMBATTIME..combatTime.." ) "
+		if totalAttack >= 10 then
+
+			if combatTime > 60 then
+				--团队通报
+				if GetNumRaidMembers() > 0 then
+					SendChatMessage(msgtext, "RAID")
+				else
+					--DEFAULT_CHAT_FRAME:AddMessage(msgtext)
+					SendChatMessage(msgtext, "SAY")
+				end
+			elseif combatTime > 0 then
+				DEFAULT_CHAT_FRAME:AddMessage(msgtext)
+				--SendChatMessage(msgtext, "SAY")
+			elseif combatTime <= 0 then
+				jtprint("Combat Time error".."Start:"..JTE_CombatStartTime.." End:"..JTE_CombatEndTime)
 			end
-		elseif combatTime > 0 then
-			--DEFAULT_CHAT_FRAME:AddMessage(msgtext)
-			SendChatMessage(msgtext, "SAY")
-		elseif combatTime <= 0 then
-			jtprint("Combat Time error".."Start:"..JTE_CombatStartTime.." End:"..JTE_CombatEndTime)
+		else
+			DEFAULT_CHAT_FRAME:AddMessage(JTE_PARRYCOUNTHEADER..JTE_TEXT_PARRYCOUNTINACTIVE)
 		end
-		
+
 	end
 
 end
@@ -233,10 +245,13 @@ function JTE_OnEvent()
 			JTE_EnergyRestoreSoundEffect(arg2)
 		end
 	elseif (event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
+		JTE_AttackCount(0,1)
 		JTE_SkillSoundEffect(arg1)
 	elseif (event == "CHAT_MSG_COMBAT_SELF_HITS") then
+		JTE_AttackCount(1,0)
 		JTE_SwingHitSoundEffect(arg1)
 	elseif (event == "CHAT_MSG_COMBAT_SELF_MISSES") then
+		JTE_AttackCount(1,0)
 		JTE_SwingMissSoundEffect(arg1)
 	end
 end
@@ -564,6 +579,13 @@ function JTE_SkillSoundEffect(arg1)
 	end
 
 end
+
+--AttackCount
+function JTE_AttackCount(swingcount,spellcount)
+	JTE_TotalAttackSwing = JTE_TotalAttackSwing + swingcount
+	JTE_TotalAttackSpell = JTE_TotalAttackSpell + spellcount
+end
+
 
 --SelfBuff音效
 function JTE_SelfBuffSoundEffect(arg1)
