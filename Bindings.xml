@@ -1,0 +1,71 @@
+<Bindings>
+	<Binding name="JTE_SWITCH_MONITOR" header="JTE_SYSTEM" category="BINDING_CATEGORY_JTE">
+		JTE_SwitchMonitor()
+	</Binding>
+	<Binding name="JTE_RESTART_SOUND" category="BINDING_CATEGORY_JTE">
+		JTE_RestartSound()
+	</Binding>
+	<Binding name="JTE_MACRO_FRAME_TOGGLE" header="JTE_SETTINGS" category="BINDING_CATEGORY_JTE">
+		JTE_ToggleMacroFrame()
+	</Binding>
+	<Binding name="JTE_FRIENDLY_PLAYER_NAME_TOGGLE" category="BINDING_CATEGORY_JTE">
+		JTE_ToggleFriendlyPlayerName()
+	</Binding>
+	<Binding name="JTE_SUMMON_TRAVELERS_TUNDRA_MAMMOTH" header="JTE_INGAME" category="BINDING_CATEGORY_JTE">
+		JTE_TravelersTundraMammoth()
+	</Binding>
+	<Binding name="JTE_SUMMON_FAVORITE_MOUNT" category="BINDING_CATEGORY_JTE">
+		JTE_SummonRandomFavoriteMount()
+	</Binding>
+	<Binding name="JTE_SWAP_TRINKET" category="BINDING_CATEGORY_JTE">
+		JTE_SwapTrinkets()
+	</Binding>
+	<Binding name="JTE_INSPECT" category="BINDING_CATEGORY_JTE">
+		JTE_Inspect()
+	</Binding>
+	<Binding name="JTE_INITIATE_TRADE" category="BINDING_CATEGORY_JTE">
+		InitiateTrade("target")
+	</Binding>
+	<Binding name="JTE_LEAVE_PARTY" category="BINDING_CATEGORY_JTE">
+		LeaveParty()
+	</Binding>
+	<Binding name="JTE_SWITCH_COMBAT_LOG" category="BINDING_CATEGORY_JTE">
+		JTE_CombatLog()
+	</Binding>
+	<Binding name="JTE_ROGUE_TOT_SET_TARGET_A" header="JTE_CLASS_KEYS" category="BINDING_CATEGORY_JTE">
+		JTE_ToTSetTarget("A")
+	</Binding>
+	<Binding name="JTE_ROGUE_TOT_SET_TARGET_B" category="BINDING_CATEGORY_JTE">
+		JTE_ToTSetTarget("B")
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_1" header="JTE_GRAPHICSQUALITY" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(1)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_2" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(2)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_3" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(3)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_4" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(4)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_5" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(5)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_6" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(6)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_7" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(7)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_8" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(8)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_9" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(9)
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_10" category="BINDING_CATEGORY_JTE">
+		JTE_SetGraphicsQuality(10)
+	</Binding>
+</Bindings>
