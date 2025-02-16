@@ -1,12 +1,6 @@
 local _G = getfenv(0)
 local addonName, addonTable = ...
 
--- local GetItemInfo = C_Item.GetItemInfo -- retail ok / classic ok / wlkcn ok
--- local GetSpellLink = C_Spell.GetSpellLink -- retail nil
--- local EquipItemByName = C_Item.EquipItemByName -- retail ok
--- local GetSpellInfo = C_Spell.GetSpellInfo -- retail nil / classic ok and wlkcn ok
--- local IsItemInRange = C_Item.IsItemInRange -- retail ok
-
 JTE = {}
 JTE.addonName = addonName
 JTE.version = C_AddOns.GetAddOnMetadata(addonName, "Version")
@@ -21,7 +15,7 @@ function JTE_IsAddOnLoaded()
 		"tdInspect",
 	}
 	for i = 1, #addonList do
-		local loaded = C_AddOns.IsAddOnLoaded(addonList[i])
+		local loaded = IsAddOnLoaded(addonList[i])
 		JTE.IsAddOnLoaded[addonList[i]] = loaded
 	end
 end
@@ -89,6 +83,11 @@ local function initDB()
 	while #JTEDB.CheckResponse > JTEDB.ResponseMax do
 		table.remove(JTEDB.CheckResponse, 1)
 	end
+end
+
+local function initVariables()
+	--装备记录
+	JTE_SaveInventoryItemId()
 end
 
 function events:ADDON_LOADED(...)
@@ -880,11 +879,6 @@ function JTE_PrintItemNames()
 		end
 	end
 	JTE_Print("Total #|CFFFFFFFF"..count.." rings.")
-end
-
-function initVariables()
-	--装备记录
-	JTE_SaveInventoryItemId()
 end
 
 function JTE_SaveInventoryItemId()
