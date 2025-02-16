@@ -229,7 +229,7 @@ function JTE_SlashCommandHandler(msg)
 			elseif( command == "st" or command == "swaptrinket" ) then
 				JTE_SwapTrinkets()
 			elseif( command == "t" ) then
-				jttest()
+				JTE_Test()
 			elseif( command == "test" ) then
 				DEFAULT_CHAT_FRAME:AddMessage('JTE testing')
 				-- |T iconpath/iconid : width : height : posX : posY : scaleX : scaleY :4:60:4:60 --后4别动，边框和资源管理移位用的
@@ -319,14 +319,13 @@ function JTE_StealthCheck(command, pre1, pre2, pre3)
 end
 
 
-function jttest(arg1)
+function JTE_Test(arg1)
 	--判断职业，大写，判断图标内容，播放声音
 	if not JTE.addonName then
 		JTE_Print("name is nil")
 	else
 		JTE_Print("name"..JTE.addonName)
 	end
-	
 end
 
 function JTE_help()
@@ -355,7 +354,7 @@ function JTE_CmdSplit(str) --最多3参数
 		pre1, msg = JTE_SplitString(str," ")
 		if JTE_SplitString(msg," ") then
 			pre2, msg = JTE_SplitString(msg," ")
-			
+
 			if JTE_SplitString(msg," ") then
 				pre3, msg = JTE_SplitString(msg," ")
 				return msg, pre1, pre2, pre3
@@ -390,7 +389,7 @@ end
 --FakeEvent指令部分
 function JTE_FakeEventScan(event, ...)
 	if event and event ~= "" then
-		fakeEvent = string.upper(event)
+		local fakeEvent = string.upper(event)
 		WeakAuras.ScanEvents(fakeEvent, ...)
 		JTE_Print("Fake '|CFFC29080"..fakeEvent.."|R' fired.")
 	else
@@ -643,11 +642,6 @@ local JTE_isMountCollected = function(mountNameOrId) --return name, spellID, ico
 	end
 end
 local JTE_UpdateMountIDs = function()
-	local BuildMountData = function()
-		for _, v in pairs(JTE.Mount.MountIDs) do
-			
-		end
-	end
 	if not JTE.Mount.MountIDs then
 		JTE.Mount.MountIDs = C_MountJournal.GetMountIDs()
 	else
@@ -1042,7 +1036,6 @@ function JTE_CombatLog()
 		LoggingCombat(true)
 		JTE_Print("|cFFFFF569战斗记录 |R-> |cFF55FF55开启|R")
 	end
-	
 end
 
 --玩家名字染色
