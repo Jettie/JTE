@@ -1,14 +1,19 @@
 local _G = getfenv(0)
 local addonName, addonTable = ...
 
+-- local GetItemInfo = C_Item.GetItemInfo -- retail ok / classic ok / wlkcn ok
+-- local GetSpellLink = C_Spell.GetSpellLink -- retail nil
+-- local EquipItemByName = C_Item.EquipItemByName -- retail ok
+-- local GetSpellInfo = C_Spell.GetSpellInfo -- retail nil / classic ok and wlkcn ok
+-- local IsItemInRange = C_Item.IsItemInRange -- retail ok
+
 JTE = {}
 JTE.addonName = addonName
-JTE.version = GetAddOnMetadata(addonName, 'Version')
+JTE.version = C_AddOns.GetAddOnMetadata(addonName, "Version")
 
 JTE.MissingDependency = {}
 JTE.Spam = {}
 JTE.IsAddOnLoaded = {}
-
 
 function JTE_IsAddOnLoaded()
 	local addonList = {
@@ -16,7 +21,7 @@ function JTE_IsAddOnLoaded()
 		"tdInspect",
 	}
 	for i = 1, #addonList do
-		local loaded = IsAddOnLoaded(addonList[i])
+		local loaded = C_AddOns.IsAddOnLoaded(addonList[i])
 		JTE.IsAddOnLoaded[addonList[i]] = loaded
 	end
 end
@@ -656,12 +661,15 @@ end
 --Traveler's Tundra Mammoth
 function JTE_TravelersTundraMammoth()
 	JTE_UpdateMountIDs()
-
+	
 	if not InCombatLockdown() then
 		local TravelersTundraMammothSpellID = UnitFactionGroup("player") == "Alliance" and 61425 or 61447;
+		JTE_Print("ininin")
 		local _, itemLink = GetItemInfo(UnitFactionGroup("player") == "Alliance" and 44235 or 44234);
+		JTE_Print("ininin2")
 		local isCollected, name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID = JTE_isMountCollected(TravelersTundraMammothSpellID)
-		if isCollected then
+		JTE_Print("ininin3")
+		if mountID and isCollected then
 			C_MountJournal.SummonByID(mountID)
 			return
 		else
@@ -752,25 +760,25 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 		JTE_Print("你还没有学会 |R"..mountName)
 	end
 	if ( C_Map.GetBestMapForUnit("player")==125 and GetSubZoneText()~="克拉苏斯平台" ) or ( C_Map.GetBestMapForUnit("player")==126 and GetSubZoneText()=="达拉然下水道" ) then
-		if gmIsCollected then
+		if gmMountID and gmIsCollected then
 			C_MountJournal.SummonByID(gmMountID)
 		else
 			unknownMount(groundMountName)
 		end
 	elseif IsSubmerged() and not IsMounted() then
-		if smIsCollected then
+		if smMountID and smIsCollected then
 			C_MountJournal.SummonByID(smMountID)
 		else
 			unknownMount(swimMountName)
 		end
 	elseif IsFlyableArea() then
-		if fmIsCollected then
+		if fmMountID and fmIsCollected then
 			C_MountJournal.SummonByID(fmMountID)
 		else
 			unknownMount(flyMountName)
 		end
 	else
-		if gmIsCollected then
+		if gmMountID and gmIsCollected then
 			C_MountJournal.SummonByID(gmMountID)
 		else
 			unknownMount(groundMountName)
@@ -993,7 +1001,7 @@ JTE.TrinketsSwapWait = false
 function JTE_SwapTrinkets()
 	if not InCombatLockdown() then
 		local trinket0SlotId, trinket1SlotId = GetInventoryItemID("player", 13), GetInventoryItemID("player", 14)
-		local Trinket0, Trinket1  = GetInventorySlotInfo("Trinket0Slot"), GetInventorySlotInfo("Trinket1Slot")
+		local Trinket0, Trinket1  = INVSLOT_TRINKET1, INVSLOT_TRINKET2
 		if not trinket0SlotId and trinket1SlotId then
 			Trinket0, Trinket1 = Trinket1, Trinket0
 		elseif not trinket0SlotId and not trinket1SlotId then
@@ -1016,7 +1024,7 @@ function JTE_SwapTrinketsBack(equipmentSlot, hasCurrent)
 		return
 	elseif JTE.TrinketsSwapping and not JTE.TrinketsSwapWait then
 		local trinket0SlotId, trinket1SlotId = GetInventoryItemID("player", 13), GetInventoryItemID("player", 14)
-		local Trinket0, Trinket1  = GetInventorySlotInfo("Trinket0Slot"), GetInventorySlotInfo("Trinket1Slot")
+		local Trinket0, Trinket1  = INVSLOT_TRINKET1, INVSLOT_TRINKET2
 		if not trinket0SlotId and trinket1SlotId then
 			Trinket0, Trinket1 = Trinket1, Trinket0
 		elseif not trinket0SlotId and not trinket1SlotId then
@@ -1094,7 +1102,7 @@ function JTE_SpellCheck(checkName, startNum, endNum, checkIcon)
 				maxRange = maxRange,
 				originalIcon = originalIcon,
 			}
-			print("#|CFFFF53A2"..#SpellCheckSaved.."|R ID=|CFFFFFFFF"..(spellId or "NOID").."|R name=|CFFFFFFFF"..(name or "NONAME").."|R icon=|CFFFFFFFF"..(icon or "0").."|R L="..(GetSpellLink(spellId) or "NOLINK"))
+			print("#|CFFFF53A2"..#SpellCheckSaved.."|R ID=|CFFFFFFFF"..(spellId or "NOID").."|R name=|CFFFFFFFF"..(name or "NONAME").."|R icon=|CFFFFFFFF"..(icon or "0").."|R L="..(spellId and GetSpellLink(spellId) or "NOLINK"))
 		end
 	end
 	JTE_Print("Item(|CFFFFFFFF"..startNum.."|R-|CFFFFFFFF"..endNum.."|R) range check done #|CFFFFFFFF"..#SpellCheckSaved.."|R ids in range.")
