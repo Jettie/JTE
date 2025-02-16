@@ -661,14 +661,11 @@ end
 --Traveler's Tundra Mammoth
 function JTE_TravelersTundraMammoth()
 	JTE_UpdateMountIDs()
-	
+
 	if not InCombatLockdown() then
 		local TravelersTundraMammothSpellID = UnitFactionGroup("player") == "Alliance" and 61425 or 61447;
-		JTE_Print("ininin")
 		local _, itemLink = GetItemInfo(UnitFactionGroup("player") == "Alliance" and 44235 or 44234);
-		JTE_Print("ininin2")
 		local isCollected, name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID = JTE_isMountCollected(TravelersTundraMammothSpellID)
-		JTE_Print("ininin3")
 		if mountID and isCollected then
 			C_MountJournal.SummonByID(mountID)
 			return
@@ -753,7 +750,7 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 		local _, _, spellID, _, _, _, _, _, _, _, _, isCollected, mountID = JTE_isMountCollected(swimMountName)
 		smSpellID, smIsCollected, smMountID = spellID, isCollected, mountID
 	else
-		smSpellID, smIsCollected, smMountID = gmSpellID, gmIsCollected, gmMountID
+		smSpellID, smIsCollected, smMountID = fmSpellID, fmIsCollected, fmMountID
 		swimMountName = groundMountName
 	end
 	local function unknownMount(mountName)
