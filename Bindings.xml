@@ -38,34 +38,40 @@
 	<Binding name="JTE_ROGUE_TOT_SET_TARGET_B" category="BINDING_CATEGORY_JTE">
 		JTE_ToTSetTarget("B")
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_1" header="JTE_GRAPHICSQUALITY" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_BIAOGE_CD_FRAME_TOGGLE" category="BINDING_CATEGORY_JTE">
+		JTE_BiaoGeCDFrameToggle()
+	</Binding>
+	<Binding name="JTE_MRT_FIGHT_LOG_TOGGLE" category="BINDING_CATEGORY_JTE">
+		JTE_MRTFightLogToggle()
+	</Binding>
+	<Binding name="JTE_GRAPHICS_QUALITY_1" header="JTE_GRAPHICSQUALITY" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(1)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_2" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_2" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(2)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_3" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_3" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(3)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_4" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_4" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(4)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_5" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_5" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(5)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_6" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_6" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(6)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_7" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_7" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(7)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_8" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_8" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(8)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_9" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_9" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(9)
 	</Binding>
-	<Binding name="JTE_GRAPHICS_QUALITY_10" category="BINDING_CATEGORY_JTE">
+	<Binding name="JTE_GRAPHICS_QUALITY_10" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(10)
 	</Binding>
 </Bindings>

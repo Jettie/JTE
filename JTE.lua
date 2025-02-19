@@ -9,10 +9,13 @@ JTE.MissingDependency = {}
 JTE.Spam = {}
 JTE.IsAddOnLoaded = {}
 
-function JTE_IsAddOnLoaded()
+local JTE_IsAddOnLoaded = function()
 	local addonList = {
 		"ElvUI",
 		"tdInspect",
+		"BiaoGe",
+		"WeakAuras",
+		"MRT",
 	}
 	for i = 1, #addonList do
 		local loaded = IsAddOnLoaded(addonList[i])
@@ -24,8 +27,18 @@ end
 JTE.previousEquipmentId = {}
 JTE.waitToSwitchBack = {}
 
+local iconStr = function(iconId)
+	if iconId and type(iconId) == "number" then
+		return "|T"..iconId..":12:12:0:0:64:64:4:60:4:60|t"
+	else
+		return ""
+	end
+end
+
 --Bindings文本
-BINDING_CATEGORY_JTE = "|CFF1785D1JTE|R - JT的小工具合集 |T135451:12:12:0:0:64:64:4:60:4:60|t"
+BINDING_CATEGORY_JTE = "|CFF1785D1JTE|R - JT的小工具合集 "..iconStr(135451)
+
+BINDING_CATEGORY_JTE_GRAPHICSQUALITY = "|CFF1785D1JTE|R - 画质快速切换 "..iconStr(135451)
 
 BINDING_HEADER_JTE_GRAPHICSQUALITY = "JTE 画质快速切换"
 BINDING_NAME_JTE_GRAPHICS_QUALITY_1 = "切换画质1"
@@ -39,27 +52,28 @@ BINDING_NAME_JTE_GRAPHICS_QUALITY_8 = "切换画质8"
 BINDING_NAME_JTE_GRAPHICS_QUALITY_9 = "切换画质9"
 BINDING_NAME_JTE_GRAPHICS_QUALITY_10 = "切换画质10"
 
-JTE_TEXT = "JTE TEST TEXT"
 BINDING_HEADER_JTE_SYSTEM = "系统工具"
-BINDING_NAME_JTE_SWITCH_MONITOR = "|T136034:12:12:0:0:64:64:4:60:4:60|t主副显示器切换"
-BINDING_NAME_JTE_RESTART_SOUND = "|T134228:12:12:0:0:64:64:4:60:4:60|t修复耳机音箱切换声音"
+BINDING_NAME_JTE_SWITCH_MONITOR = iconStr(136034).."主副显示器切换"
+BINDING_NAME_JTE_RESTART_SOUND = iconStr(134228).."修复耳机音箱切换声音"
 
 BINDING_HEADER_JTE_SETTINGS = "其他设置"
-BINDING_NAME_JTE_MACRO_FRAME_TOGGLE = "|T132181:12:12:0:0:64:64:4:60:4:60|t显示/隐藏宏界面"
-BINDING_NAME_JTE_FRIENDLY_PLAYER_NAME_TOGGLE = "|T135934:12:12:0:0:64:64:4:60:4:60|t显示/隐藏友方玩家姓名"
+BINDING_NAME_JTE_MACRO_FRAME_TOGGLE = iconStr(132181).."显示/隐藏宏界面"
+BINDING_NAME_JTE_FRIENDLY_PLAYER_NAME_TOGGLE = iconStr(135934).."显示/隐藏友方玩家姓名"
 
 BINDING_HEADER_JTE_INGAME = "游戏设置"
-BINDING_NAME_JTE_SUMMON_TRAVELERS_TUNDRA_MAMMOTH = "|T236240:12:12:0:0:64:64:4:60:4:60|t召唤修理大象"
-BINDING_NAME_JTE_SUMMON_FAVORITE_MOUNT = "|T134010:12:12:0:0:64:64:4:60:4:60|t召唤随机偏好坐骑"
-BINDING_NAME_JTE_SWAP_TRINKET = "|T133434:12:12:0:0:64:64:4:60:4:60|t饰品对换重置ICD"
-BINDING_NAME_JTE_INSPECT = "|T132311:12:12:0:0:64:64:4:60:4:60|t鼠标悬浮查看天赋"
-BINDING_NAME_JTE_INITIATE_TRADE = "|T133784:12:12:0:0:64:64:4:60:4:60|t向目标发起交易"
-BINDING_NAME_JTE_LEAVE_PARTY = "|T132328:12:12:0:0:64:64:4:60:4:60|t退出队伍"
-BINDING_NAME_JTE_SWITCH_COMBAT_LOG = "|T133734:12:12:0:0:64:64:4:60:4:60|t开启/关闭战斗记录"
+BINDING_NAME_JTE_SUMMON_TRAVELERS_TUNDRA_MAMMOTH = iconStr(236240).."召唤修理大象"
+BINDING_NAME_JTE_SUMMON_FAVORITE_MOUNT = iconStr(134010).."召唤随机偏好坐骑"
+BINDING_NAME_JTE_SWAP_TRINKET = iconStr(133434).."饰品对换重置ICD"
+BINDING_NAME_JTE_INSPECT = iconStr(132311).."鼠标悬浮查看天赋"
+BINDING_NAME_JTE_INITIATE_TRADE = iconStr(133784).."向目标发起交易"
+BINDING_NAME_JTE_LEAVE_PARTY = iconStr(132328).."退出队伍"
+BINDING_NAME_JTE_SWITCH_COMBAT_LOG = iconStr(133734).."开启/关闭战斗记录"
 
-BINDING_HEADER_JTE_CLASS_KEYS = "游戏设置"
-BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_A = "盗贼-|T236283:12:12:0:0:64:64:4:60:4:60|t设置嫁祸|CFF94EF00A"
-BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_B = "盗贼-|T236283:12:12:0:0:64:64:4:60:4:60|t设置嫁祸|CFFEF573EB"
+BINDING_HEADER_JTE_CLASS_KEYS = "联动设置"
+BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_A = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFF94EF00A"
+BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_B = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFFEF573EB"
+BINDING_NAME_JTE_BIAOGE_CD_FRAME_TOGGLE = iconStr(132149).."BiaoGe-显示副本CD"
+BINDING_NAME_JTE_MRT_FIGHT_LOG_TOGGLE = iconStr(133739).."MRT-显示战斗分析"
 
 local checkresponse = nil
 
@@ -76,7 +90,7 @@ end
 
 local JTEFrame, events = CreateFrame("Frame"), {};
 
-local function initDB()
+local initDB = function()
 	if type(JTEDB) ~= "table" then JTEDB = {} end
 	if type(JTEDB.ResponseMax) ~= "number" then JTEDB.ResponseMax = 200 end
 	if type(JTEDB.CheckResponse) ~= "table" then JTEDB.CheckResponse = {} end
@@ -85,7 +99,7 @@ local function initDB()
 	end
 end
 
-local function initVariables()
+local initVariables = function()
 	--装备记录
 	JTE_SaveInventoryItemId()
 end
@@ -99,7 +113,7 @@ function events:ADDON_LOADED(...)
 		end
 		checkresponse = JTEDB.CheckResponse
 	end
-	JTE_ReapplySkin()
+	JTE_ReApplySkin()
 end
 
 function events:CHAT_MSG_ADDON(...)
@@ -149,7 +163,7 @@ for k, v in pairs(events) do
 end
 
 -- ElvUI Reskin
-function JTE_ReapplySkin()
+function JTE_ReApplySkin()
 	if JTE.IsAddOnLoaded["ElvUI"] then
 		if JTE.IsAddOnLoaded["tdInspect"] then
 			if not InspectFrame then
@@ -171,6 +185,32 @@ function JTE_ReapplySkin()
 				f:RegisterEvent("ADDON_LOADED")
 			end
 		end
+	end
+end
+
+-- BiaoGe 副本CD界面快捷键
+function JTE_BiaoGeCDFrameToggle()
+	if JTE.IsAddOnLoaded["BiaoGe"] then
+		if BG and BG.FBCDFrame and BG.FBCDFrame:IsShown() then
+			BG.FBCDFrame:Hide()
+		else
+			BG.SetFBCD(nil, nil, true)
+		end
+	else
+		JTE_Print("副本CD显示快捷键需要安装BiaoGe插件")
+	end
+end
+
+-- MRT 战斗分析开关
+function JTE_MRTFightLogToggle()
+	if JTE.IsAddOnLoaded["MRT"] then
+		if GMRTBWInterfaceFrame and GMRTBWInterfaceFrame:IsShown() then
+			GMRTBWInterfaceFrame:Hide()
+		else
+			GMRT.F.FightLog_Open()
+		end
+	else
+		JTE_Print("战斗分析开关快捷键需要安装MRT插件")
 	end
 end
 
@@ -233,14 +273,6 @@ function JTE_SlashCommandHandler(msg)
 			elseif( command == "test" ) then
 				DEFAULT_CHAT_FRAME:AddMessage('JTE testing')
 				-- |T iconpath/iconid : width : height : posX : posY : scaleX : scaleY :4:60:4:60 --后4别动，边框和资源管理移位用的
-				-- JTE_Print("|T"..GetSpellTexture(1784)..":14:14:0:0:64:64:4:60:4:60|t TEST")
-				-- JTE_Print("|T"..GetSpellTexture(1784)..":12:12:0:0:64:64:4:60:4:60|t TEST")
-				-- JTE_Print('设置嫁祸目标只可以是 |CFFFFFFFF"A"|R 或者 |CFFFFFFFF"B"|R')
-				-- JTE_Print("|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 组队时才能使用嫁祸哟 (;P)")
-				-- JTE_Print("没有检测到 |CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 请先导入嫁祸WA")
-				-- JTE_Print("|CFFFFFFFFWeakAuras.ScanEvents|R 失效 请更新 |CFFFFFFFFWeakAuras|R 插件")
-				-- JTE_Print("|CFFFFFFFFWeakAuras.GetRegion|R 失效 请更新 |CFFFFFFFFWeakAuras|R 插件")
-				-- JTE_Print("设置嫁祸虚拟焦点需要安装插件 |CFFFFFFFFWeakAuras|R 并导入 |CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 才能使用")
 			else
 				JTE_help();
 			end
@@ -673,8 +705,11 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 	JTE_UpdateMountIDs()
 
 	local getMountNames = function(namesString)
+		if not namesString then return end
+
 		local nameTable = {}
 		local splitByComma = strsplittable(",", namesString)
+
 		for i = 1, #splitByComma do
 			local splitBySemicolon = {}
 			splitBySemicolon[i] = strsplittable(";", splitByComma[i])
@@ -698,7 +733,7 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 
 	local gmMountNames = getMountNames(groundMountNameArray)
 	local groundMountName
-	if #gmMountNames > 0 then
+	if gmMountNames and #gmMountNames > 0 then
 		groundMountName = gmMountNames[math.random(#gmMountNames)]
 	else
 		groundMountName = nil
@@ -706,7 +741,7 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 
 	local flyMountNames = getMountNames(flyMountNameArray)
 	local flyMountName
-	if #flyMountNames > 0 then
+	if flyMountNames and #flyMountNames > 0 then
 		flyMountName = flyMountNames[math.random(#flyMountNames)]
 	else
 		flyMountName = nil
@@ -714,7 +749,7 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 
 	local swimMountNames = getMountNames(swimMountNameArray)
 	local swimMountName
-	if #swimMountNames > 0 then
+	if swimMountNames and #swimMountNames > 0 then
 		swimMountName = swimMountNames[math.random(#swimMountNames)]
 	else
 		swimMountName = nil
@@ -744,9 +779,9 @@ function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
 		smSpellID, smIsCollected, smMountID = spellID, isCollected, mountID
 	else
 		smSpellID, smIsCollected, smMountID = fmSpellID, fmIsCollected, fmMountID
-		swimMountName = groundMountName
+		swimMountName = flyMountName
 	end
-	local function unknownMount(mountName)
+	local unknownMount = function(mountName)
 		JTE_Print("你还没有学会 |R"..mountName)
 	end
 	if ( C_Map.GetBestMapForUnit("player")==125 and GetSubZoneText()~="克拉苏斯平台" ) or ( C_Map.GetBestMapForUnit("player")==126 and GetSubZoneText()=="达拉然下水道" ) then
@@ -784,48 +819,40 @@ end
 --嫁祸宏设置嫁祸目标
 function JTE_ToTSetTarget(setAorB)
 	if not ( setAorB == "A" or setAorB == "a" or setAorB == "B" or setAorB == "b" or setAorB == 1 or setAorB == 2 ) then
-		JTE_Print('|T236283:12:12:0:0:64:64:4:60:4:60|t设置嫁祸目标只可以是 |CFFFFFFFF"A"|R 或者 |CFFFFFFFF"B"|R')
+		JTE_Print(iconStr(236283)..'设置嫁祸目标只可以是 |CFFFFFFFF"A"|R 或者 |CFFFFFFFF"B"|R')
 		return
 	end
 	local playerClassName, playerClass = UnitClass("player")
 	if playerClass ~= "ROGUE" then
-		JTE_Print('|T236283:12:12:0:0:64:64:4:60:4:60|t'..GetSpellLink(57934)..'是 |CFFFFF569盗贼|R 的限定技能 |C'..select(4, GetClassColor(playerClass))..playerClassName..' |R无法使用')
+		JTE_Print(iconStr(236283)..''..GetSpellLink(57934)..'是 |CFFFFF569盗贼|R 的限定技能 |C'..select(4, GetClassColor(playerClass))..playerClassName..' |R无法使用')
 		return
 	end
 
 	--检测有没有WA插件
-	if WeakAuras then
-	--检测有没有嫁祸WA
-		if WeakAuras.GetRegion then
-			if WeakAuras.ScanEvents then
-				if WeakAuras.GetRegion("宏看右边-自定义选项") or WeakAuras.GetRegion("宏看右边-自定义选项 2") then
-					--有嫁祸WA
-					if IsInGroup() then
-						if setAorB == "A" or setAorB == "a" or setAorB == 1 then
-							WeakAuras.ScanEvents('SETJHTARGETA')
-						elseif setAorB == "B" or setAorB == "b" or setAorB == 2 then
-							WeakAuras.ScanEvents('SETJHTARGETB')
-						end
-					else
-						if not JTE.Spam["ToTNotInGroup"] then
-							JTE.Spam["ToTNotInGroup"] = GetTime() - 1
-						end
-						if JTE.Spam["ToTNotInGroup"] < GetTime() then
-							JTE_Print("|T236283:12:12:0:0:64:64:4:60:4:60|t|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 组队时才能使用嫁祸哟 (;P)")
-							JTE.Spam["ToTNotInGroup"] = GetTime() + 0.5
-						end
-					end
-				else
-					JTE_Print("没有检测到 |T236283:12:12:0:0:64:64:4:60:4:60|t|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 请先导入嫁祸WA")
+	if JTE.IsAddOnLoaded["WeakAuras"] then
+		--检测有没有嫁祸WA
+		if WeakAuras.GetRegion("宏看右边-自定义选项") or WeakAuras.GetRegion("宏看右边-自定义选项 2") then
+			--有嫁祸WA
+			if IsInGroup() then
+				if setAorB == "A" or setAorB == "a" or setAorB == 1 then
+					WeakAuras.ScanEvents('SETJHTARGETA')
+				elseif setAorB == "B" or setAorB == "b" or setAorB == 2 then
+					WeakAuras.ScanEvents('SETJHTARGETB')
 				end
 			else
-				JTE_Print("|CFFFFFFFFWeakAuras.ScanEvents|R 失效 请更新 |CFFFFFFFFWeakAuras|R 插件")
+				if not JTE.Spam["ToTNotInGroup"] then
+					JTE.Spam["ToTNotInGroup"] = GetTime() - 1
+				end
+				if JTE.Spam["ToTNotInGroup"] < GetTime() then
+					JTE_Print(iconStr(236283).."|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 组队时才能使用嫁祸哟 (;P)")
+					JTE.Spam["ToTNotInGroup"] = GetTime() + 0.5
+				end
 			end
 		else
-			JTE_Print("|CFFFFFFFFWeakAuras.GetRegion|R 失效 请更新 |CFFFFFFFFWeakAuras|R 插件")
+			JTE_Print("没有检测到 "..iconStr(236283).."|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 请先导入嫁祸WA")
 		end
 	else
-		JTE_Print("设置嫁祸虚拟焦点需要安装插件 |CFFFFFFFFWeakAuras|R 并导入 |T236283:12:12:0:0:64:64:4:60:4:60|t|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 才能使用")
+		JTE_Print("设置嫁祸虚拟焦点需要安装插件 |CFFFFFFFFWeakAuras|R 并导入 "..iconStr(236283).."|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 才能使用")
 	end
 end
 
@@ -946,7 +973,7 @@ function JTE_Inspect(inspectName, inspectRealm)
 	-- 		JTE.MissingDependency["__ala_meta__"] = true
 	-- 	end
 		InspectUnit(unit)
-		return
+	-- 	return
 	-- else
 	-- 	local function tryInspect(unit)
 	-- 		local name, realm = UnitName(unit);
@@ -1058,8 +1085,10 @@ JTE.ClassColorName = JTE_ClassColorName
 
 --带前缀的JTE_Print()
 function JTE_Print(msg)
-	if not msg then return end
-	local header = "|T135451:12:12:0:0:64:64:4:60:4:60|t[|CFF8FFFA2JTE|R]|CFF8FFFA2 : "
+	local header = iconStr(135451).."[|CFF8FFFA2JTE|R]|CFF8FFFA2 : "
+	if type(msg) ~= "string" and type(msg) ~= "number" then
+		msg = tostring(msg)
+	end
 	print(header..msg)
 end
 
