@@ -650,10 +650,10 @@ end
 
 --宏界面开关
 function JTE_ToggleMacroFrame()
-	if MacroFrame:IsShown() then
-		MacroFrame:Hide()
+	if MacroFrame and MacroFrame:IsShown() and MacroExitButton and MacroExitButton:IsShown() then
+		MacroExitButton:Click()
 	else
-		MacroFrame:Show()
+		ShowMacroFrame()
 	end
 end
 
