@@ -866,7 +866,7 @@ function JTE_ToggleFriendlyPlayerName()
 end
 
 local kirinTorTeleportId = 54406
---local kirinTorTeleportId = 51723 --扰乱测试
+--local kirinTorTeleportId = 51723 -- 刀扇测试
 local kirinTorRings = {
 	--ilv 200
 	[40585] = true,
@@ -889,6 +889,7 @@ local kirinTorRings = {
 	-- [51559] = true,
 	-- [51560] = true,
 }
+
 --测试物品名字，等ICC更新后再测一次删除
 function JTE_PrintItemNames()
 	local count = 0
@@ -913,8 +914,9 @@ function JTE_SaveInventoryItemId()
 end
 
 function JTE_OnEquipmentChanged(equipmentSlot, hasCurrent)
-	--肯瑞托传送戒指换回来功能,穿戴肯瑞托戒指时记录
-	if equipmentSlot == 11 or equipmentSlot ==12 then
+	-- 戒指
+	if equipmentSlot == INVSLOT_FINGER1 or equipmentSlot == INVSLOT_FINGER2 then
+		--肯瑞托传送戒指换回来功能,穿戴肯瑞托戒指时记录
 		local newId = GetInventoryItemID("player", equipmentSlot)
 		if kirinTorRings[newId] then
 			for k, v in pairs(JTE.waitToSwitchBack) do
@@ -930,7 +932,7 @@ function JTE_OnEquipmentChanged(equipmentSlot, hasCurrent)
 			end
 		end
 	end
-	if not next(JTE.waitToSwitchBack) then
+	if not JTE.waitToSwitchBack[INVSLOT_FINGER1] and not JTE.waitToSwitchBack[INVSLOT_FINGER2] then
 		JTEFrame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	end
 
@@ -945,11 +947,13 @@ function JTE_OnSpellCastSucceeded(...)
 	if unitTarget == "player" and spellId == kirinTorTeleportId then
 		if next(JTE.waitToSwitchBack) then
 			for k, v in pairs(JTE.waitToSwitchBack) do
-				EquipItemByName(v, k)
-				local _, itemLink = GetItemInfo(v)
-				JTE_Print("肯瑞托戒指"..(GetSpellLink(kirinTorTeleportId) or "传送").."后自动换回之前的: "..(itemLink or v))
+				if k == INVSLOT_FINGER1 or k == INVSLOT_FINGER2 then
+					EquipItemByName(v, k)
+					local _, itemLink = GetItemInfo(v)
+					JTE_Print("肯瑞托戒指"..(GetSpellLink(kirinTorTeleportId) or "传送").."后自动换回之前的: "..(itemLink or v))
+					JTE.waitToSwitchBack[k] = nil
+				end
 			end
-			JTE.waitToSwitchBack = {}
 		end
 	end
 end
