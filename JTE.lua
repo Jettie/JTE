@@ -13,7 +13,6 @@ local JTE_IsAddOnLoaded = function()
 	local addonList = {
 		"ElvUI",
 		"tdInspect",
-		"BiaoGe",
 		"WeakAuras",
 		"MRT",
 	}
@@ -72,7 +71,6 @@ BINDING_NAME_JTE_SWITCH_COMBAT_LOG = iconStr(133734).."开启/关闭战斗记录
 BINDING_HEADER_JTE_CLASS_KEYS = "联动设置"
 BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_A = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFF94EF00A"
 BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_B = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFFEF573EB"
-BINDING_NAME_JTE_BIAOGE_CD_FRAME_TOGGLE = iconStr(132149).."BiaoGe-显示副本CD"
 BINDING_NAME_JTE_MRT_FIGHT_LOG_TOGGLE = iconStr(133739).."MRT-显示战斗分析"
 
 local checkresponse = nil
@@ -185,19 +183,6 @@ function JTE_ReApplySkin()
 				f:RegisterEvent("ADDON_LOADED")
 			end
 		end
-	end
-end
-
--- BiaoGe 副本CD界面快捷键
-function JTE_BiaoGeCDFrameToggle()
-	if JTE.IsAddOnLoaded["BiaoGe"] then
-		if BG and BG.FBCDFrame and BG.FBCDFrame:IsShown() then
-			BG.FBCDFrame:Hide()
-		else
-			BG.SetFBCD(nil, nil, true)
-		end
-	else
-		JTE_Print("副本CD显示快捷键需要安装BiaoGe插件")
 	end
 end
 
@@ -960,7 +945,7 @@ end
 
 --鼠标悬浮查看天赋
 function JTE_Inspect(inspectName, inspectRealm)
-	local unit
+	local unit = inspectName
 	if UnitIsPlayer('mouseover') and UnitIsConnected('mouseover') and UnitFactionGroup('mouseover') == UnitFactionGroup('player') then
 		unit = 'mouseover'
 	elseif UnitIsPlayer('target') and UnitIsConnected('target') and UnitFactionGroup('target') == UnitFactionGroup('player') then

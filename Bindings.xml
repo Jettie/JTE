@@ -38,9 +38,6 @@
 	<Binding name="JTE_ROGUE_TOT_SET_TARGET_B" category="BINDING_CATEGORY_JTE">
 		JTE_ToTSetTarget("B")
 	</Binding>
-	<Binding name="JTE_BIAOGE_CD_FRAME_TOGGLE" category="BINDING_CATEGORY_JTE">
-		JTE_BiaoGeCDFrameToggle()
-	</Binding>
 	<Binding name="JTE_MRT_FIGHT_LOG_TOGGLE" category="BINDING_CATEGORY_JTE">
 		JTE_MRTFightLogToggle()
 	</Binding>
