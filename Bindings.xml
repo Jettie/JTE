@@ -41,6 +41,9 @@
 	<Binding name="JTE_MRT_FIGHT_LOG_TOGGLE" category="BINDING_CATEGORY_JTE">
 		JTE_MRTFightLogToggle()
 	</Binding>
+	<Binding name="JTE_TEXTURE_ATLAS_VIEWER_TOGGLE" category="BINDING_CATEGORY_JTE">
+		JTE_ToggleTextureAtlasViewer()
+	</Binding>
 	<Binding name="JTE_GRAPHICS_QUALITY_1" header="JTE_GRAPHICSQUALITY" category="BINDING_CATEGORY_JTE_GRAPHICSQUALITY">
 		JTE_SetGraphicsQuality(1)
 	</Binding>

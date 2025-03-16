@@ -72,6 +72,7 @@ BINDING_HEADER_JTE_CLASS_KEYS = "联动设置"
 BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_A = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFF94EF00A"
 BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_B = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFFEF573EB"
 BINDING_NAME_JTE_MRT_FIGHT_LOG_TOGGLE = iconStr(133739).."MRT-显示战斗分析"
+BINDING_NAME_JTE_TEXTURE_ATLAS_VIEWER_TOGGLE = iconStr(133739).."TAV-浏览材质界面"
 
 local checkresponse = nil
 
@@ -108,6 +109,10 @@ function events:ADDON_LOADED(...)
 		DEFAULT_CHAT_FRAME:AddMessage("JTE是Jettie为了自己方便做的小工具")
 		if initDB then
 			initDB()
+		end
+		-- 装备管理器
+		if GetCVar("equipmentManager") == "0" then
+			SetCVar("equipmentManager", 1)
 		end
 		checkresponse = JTEDB.CheckResponse
 	end
@@ -216,7 +221,7 @@ function JTE_SlashCommandHandler(msg)
 				JTE_ForToggleDebugShit(command)
 			elseif pre1 == "e" then
 				JTE_FakeWeakAurasEvent(command)
-			elseif pre1 == "link" then
+			elseif pre1 == "link" or "itemlink" then
 				JTE_ItemLink(command)
 			elseif pre1 == "listmax" then
 				JTE_ListResponseMax(command)
@@ -642,6 +647,15 @@ function JTE_ToggleMacroFrame()
 	end
 end
 
+-- TextureAtlasViewer开关
+function JTE_ToggleTextureAtlasViewer()
+	if IsAddOnLoaded("TextureAtlasViewer") then
+		TAV_CoreFrame:SetShown(not TAV_CoreFrame:IsShown())
+	else
+		JTE_Print("|CFF8FFFA2没有检测到TextureAtlasViewer插件")
+	end
+end
+
 --坐骑检测
 JTE.Mount = {}
 local JTE_isMountCollected = function(mountNameOrId) --return name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID
@@ -910,6 +924,9 @@ function JTE_OnEquipmentChanged(equipmentSlot, hasCurrent)
 				end
 			end
 			JTE.waitToSwitchBack[equipmentSlot] = (JTE.previousEquipmentId[equipmentSlot] ~= newId) and JTE.previousEquipmentId[equipmentSlot] or nil
+			local itemLink = select(2, GetItemInfo(newId))
+			local previousItemLink = select(2, GetItemInfo(JTE.waitToSwitchBack[equipmentSlot]))
+			JTE_Print("已佩戴 "..(itemLink or "[肯瑞托戒指]").. " 等待传送后换回 "..(previousItemLink or "之前的戒指"))
 			JTEFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 		else
 			if JTE.waitToSwitchBack[equipmentSlot] then
