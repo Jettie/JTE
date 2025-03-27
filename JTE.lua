@@ -1,7 +1,7 @@
-local _G = getfenv(0)
+local _G = _G or getfenv(0)
 local addonName, addonTable = ...
 
-JTE = {}
+JTE = addonTable
 JTE.addonName = addonName
 JTE.version = C_AddOns.GetAddOnMetadata(addonName, "Version")
 
@@ -26,6 +26,9 @@ end
 JTE.previousEquipmentId = {}
 JTE.waitToSwitchBack = {}
 
+JTE.MyName = UnitName("player")
+JTE.MyGUID = UnitGUID("player")
+
 local iconStr = function(iconId)
 	if iconId and type(iconId) == "number" then
 		return "|T"..iconId..":12:12:0:0:64:64:4:60:4:60|t"
@@ -33,9 +36,10 @@ local iconStr = function(iconId)
 		return ""
 	end
 end
+JTE.iconStr = iconStr
 
 --Bindings文本
-BINDING_CATEGORY_JTE = "|CFF1785D1JTE|R - JT的小工具合集 "..iconStr(135451)
+BINDING_CATEGORY_JTE_TOOL = "|CFF1785D1JTE|R - JT的小工具合集 "..iconStr(135451)
 
 BINDING_CATEGORY_JTE_GRAPHICSQUALITY = "|CFF1785D1JTE|R - 画质快速切换 "..iconStr(135451)
 
@@ -56,8 +60,8 @@ BINDING_NAME_JTE_SWITCH_MONITOR = iconStr(136034).."主副显示器切换"
 BINDING_NAME_JTE_RESTART_SOUND = iconStr(134228).."修复耳机音箱切换声音"
 
 BINDING_HEADER_JTE_SETTINGS = "其他设置"
-BINDING_NAME_JTE_MACRO_FRAME_TOGGLE = iconStr(132181).."显示/隐藏宏界面"
-BINDING_NAME_JTE_FRIENDLY_PLAYER_NAME_TOGGLE = iconStr(135934).."显示/隐藏友方玩家姓名"
+BINDING_NAME_JTE_MACRO_FRAME_TOGGLE = iconStr(132181).."宏界面开关"
+BINDING_NAME_JTE_FRIENDLY_PLAYER_NAME_TOGGLE = iconStr(135934).."友方玩家姓名开关"
 
 BINDING_HEADER_JTE_INGAME = "游戏设置"
 BINDING_NAME_JTE_SUMMON_TRAVELERS_TUNDRA_MAMMOTH = iconStr(236240).."召唤修理大象"
@@ -66,14 +70,17 @@ BINDING_NAME_JTE_SWAP_TRINKET = iconStr(133434).."饰品对换重置ICD"
 BINDING_NAME_JTE_INSPECT = iconStr(132311).."鼠标悬浮查看天赋"
 BINDING_NAME_JTE_INITIATE_TRADE = iconStr(133784).."向目标发起交易"
 BINDING_NAME_JTE_LEAVE_PARTY = iconStr(132328).."退出队伍"
-BINDING_NAME_JTE_SWITCH_COMBAT_LOG = iconStr(133734).."开启/关闭战斗记录"
-
-BINDING_HEADER_JTE_CLASS_KEYS = "联动设置"
-BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_A = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFF94EF00A"
-BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_B = iconStr(236283).."JT嫁祸WA-设置嫁祸|CFFEF573EB"
+BINDING_NAME_JTE_SWITCH_COMBAT_LOG = iconStr(133734).."战斗记录开关"
 BINDING_NAME_JTE_MRT_FIGHT_LOG_TOGGLE = iconStr(133739).."MRT-显示战斗分析"
 BINDING_NAME_JTE_TEXTURE_ATLAS_VIEWER_TOGGLE = iconStr(133739).."TAV-浏览材质界面"
 
+BINDING_HEADER_JTE_CLASS_KEYS = "联动设置"
+BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_A = iconStr(236283).."设置嫁祸目标|CFF94EF00JTA"
+BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_B = iconStr(236283).."设置嫁祸目标|CFFEF573EJTB"
+BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_X = iconStr(236283).."设置嫁祸目标|CFF28ABE0JTX"
+BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_Y = iconStr(236283).."设置嫁祸目标|CFFF4D81EJTY"
+
+local showCommandArgs = false
 local checkresponse = nil
 
 --命令登记
@@ -82,50 +89,119 @@ SlashCmdList["JTE"] = function(msg)
 	JTE_SlashCommandHandler(msg);
 end
 
-SLASH_JTEMOUNT1 = "/jtem";
-SlashCmdList["JTEMOUNT"] = function(msg)
-	JTE_MountSlashCommandHandler(msg);
+
+local CallHelp = function()
+	JTE_Print("========|CFF1785D1JTE|R玩具包========")
+	JTE_Print("是|RJettie@SMTH|CFF8FFFA2为了自己方便做的小工具")
+	JTE_Print("在|R ESC-选项-快捷键 |CFF8FFFA2中可以看到 |CFF1785D1JTE|R 相关的一些快捷键优化")
+	JTE_Print("输入 |CFFFFFFFF/jte 宏界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 宏界面拉长功能")
+	JTE_Print("输入 |CFFFFFFFF/jte 天赋界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 天赋界面拉长功能")
+	JTE_Print("输入 |CFFFFFFFF/jte 嫁祸|R 可以获取JT嫁祸WA的相关帮助信息")
 end
 
-local JTEFrame, events = CreateFrame("Frame"), {};
+--玩家名字染色
+local ClassColorName = function(unitName)
+	if unitName and UnitExists(unitName) then
+		local name = UnitName(unitName)
+		local _, class = UnitClass(unitName)
+		if not class then
+			return name or unitName
+		else
+			local classData = (RAID_CLASS_COLORS)[class]
+			local coloredName = ("|c%s%s|r"):format(classData.colorStr, name)
+			return coloredName
+		end
+	else
+		return unitName
+	end
+end
+JTE.ClassColorName = ClassColorName
 
-local initDB = function()
+--重写职业名字染色，WA_ClassColorName会返回空置
+local ColorNameByClass = function(unitName, classIdOrStr)
+    if not unitName then return "" end
+    if not classIdOrStr then return unitName end
+
+	local classStr = classIdOrStr
+	if type(classIdOrStr) == "number" then
+        classStr = select(2,GetClassInfo(classIdOrStr))
+	end
+
+    if classStr then
+        local classData = (RAID_CLASS_COLORS)[classStr]
+        local coloredName = ("|c%s%s|r"):format(classData.colorStr, unitName)
+        return coloredName
+    elseif UnitExists(unitName) then
+        local name = UnitName(unitName)
+        local _, class = UnitClass(unitName)
+        if not class then
+            return name
+        else
+            local classData = (RAID_CLASS_COLORS)[class]
+            local coloredName = ("|c%s%s|r"):format(classData.colorStr, name)
+            return coloredName
+        end
+    else
+        return unitName
+    end
+end
+JTE.ColorNameByClass = ColorNameByClass
+
+local JTEFrame, JTEFrameEvents = CreateFrame("Frame"), {};
+
+local initializeSavedVariablesForJTE = function()
 	if type(JTEDB) ~= "table" then JTEDB = {} end
+
+	-- Checking features
 	if type(JTEDB.ResponseMax) ~= "number" then JTEDB.ResponseMax = 200 end
+	if type(JTEDB.showCommandArgs) ~="boolean" then JTEDB.showCommandArgs = false end
 	if type(JTEDB.CheckResponse) ~= "table" then JTEDB.CheckResponse = {} end
 	while #JTEDB.CheckResponse > JTEDB.ResponseMax do
 		table.remove(JTEDB.CheckResponse, 1)
 	end
 end
 
-local initVariables = function()
-	--装备记录
-	JTE_SaveInventoryItemId()
-end
-
-function events:ADDON_LOADED(...)
+function JTEFrameEvents:ADDON_LOADED(...)
 	local addOnName, containsBindings = ...
 	if addOnName == JTE.addonName then
 		DEFAULT_CHAT_FRAME:AddMessage("JTE是Jettie为了自己方便做的小工具")
-		if initDB then
-			initDB()
+		-- JTE 在ADDON_LOADED事件中初始化变量 其他子功能在PLAYER_ENTERING_WORLD事件中初始化
+		if initializeSavedVariablesForJTE then
+			initializeSavedVariablesForJTE()
 		end
 		-- 装备管理器
 		if GetCVar("equipmentManager") == "0" then
 			SetCVar("equipmentManager", 1)
 		end
+
+		-- 插件运行监测 -- /dump C_AddOnProfiler.IsEnabled()
+		local addonProfilerEnabled = C_CVar.GetCVar("addonProfilerEnabled")
+		if not addonProfilerEnabled then
+			C_CVar.RegisterCVar("addonProfilerEnabled", "1")
+			C_CVar.SetCVar("addonProfilerEnabled", "0")
+		elseif addonProfilerEnabled == "1" then 
+			C_CVar.SetCVar("addonProfilerEnabled", "0")
+		end
+		
 		checkresponse = JTEDB.CheckResponse
+		showCommandArgs = JTEDB.showCommandArgs
 	end
-	JTE_ReApplySkin()
+	-- JTE_ReApplySkin()
 end
 
-function events:CHAT_MSG_ADDON(...)
+local showCommandArgsToggle = function()
+	showCommandArgs = not showCommandArgs
+	JTEDB.showCommandArgs = showCommandArgs
+	JTE_Print("|CFF1785D1JTE|R 显示命令参数: "..(showCommandArgs and "|CFF00FF00开启|R" or "|CFFFF0000关闭|R"))
+end
+
+function JTEFrameEvents:CHAT_MSG_ADDON(...)
 	local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
 	if prefix == "JTECHECKRESPONSE" then
 		local sourceName = JTE_SplitString(sender,"-") and JTE_SplitString(sender,"-") or sender
 		local msg = text
 		local channel = channel
-		local t = "|CFFFF0000In: |R"..channel.." ["..JTE_ClassColorName(sourceName).."] |CFF40FF40Res: |R"..msg
+		local t = "|CFFFF0000In: |R"..channel.." ["..ClassColorName(sourceName).."] |CFF40FF40Res: |R"..msg
 		JTE_Print(t)
 
 		--最多100条
@@ -139,69 +215,19 @@ function events:CHAT_MSG_ADDON(...)
 	end
 end
 
-function events:UNIT_SPELLCAST_SUCCEEDED(...)
-	JTE_OnSpellCastSucceeded(...)
-end
-
-function events:PLAYER_EQUIPMENT_CHANGED(...)
-	JTE_OnEquipmentChanged(...)
-	-- local equipmentSlot, hasCurrent = ...
-	-- --换饰品的换回来功能
-	-- JTE_SwapTrinketsBack(equipmentSlot, hasCurrent)
-end
-
-function events:PLAYER_ENTERING_WORLD(...)
-	JTE_Print("是|RJettie@SMTH|CFF8FFFA2为了自己方便做的小工具")
-	initVariables()
+function JTEFrameEvents:PLAYER_ENTERING_WORLD(...)
+	JTE_Print("是|CFFFFFFFFJettie@SMTH|R为了自己方便做的小工具: |CFFFFFFFF/JTE|R")
+	-- initVariables()
 	JTE_IsAddOnLoaded()
 	JTEFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
 end
 
 JTEFrame:SetScript("OnEvent", function(self, event, ...)
-	events[event](self, ...); -- call one of the functions above
+	JTEFrameEvents[event](self, ...); -- call one of the functions above
 end);
 
-for k, v in pairs(events) do
-	JTEFrame:RegisterEvent(k); -- Register all events for which handlers have been defined
-end
-
--- ElvUI Reskin
-function JTE_ReApplySkin()
-	if JTE.IsAddOnLoaded["ElvUI"] then
-		if JTE.IsAddOnLoaded["tdInspect"] then
-			if not InspectFrame then
-				local f = CreateFrame("Frame");
-				f:SetScript("OnEvent", function(self, evnet, addon)
-					if evnet == "ADDON_LOADED" then
-						if addon == "Blizzard_InspectUI" then
-							local E=unpack(ElvUI)
-							local S=E:GetModule('Skins')
-							if InspectFrameTab4 then
-								S:HandleTab(_G['InspectFrameTab4'])
-								InspectFrameTab4:SetPoint('LEFT', _G['InspectFrameTab3'], 'RIGHT', -19, 0)
-								S:HandleFrame(_G.InspectFrame.GlyphFrame, true, nil, 11, -12, -32, 76)
-							end
-							f:UnregisterEvent("ADDON_LOADED");
-						end
-					end
-				end)
-				f:RegisterEvent("ADDON_LOADED")
-			end
-		end
-	end
-end
-
--- MRT 战斗分析开关
-function JTE_MRTFightLogToggle()
-	if JTE.IsAddOnLoaded["MRT"] then
-		if GMRTBWInterfaceFrame and GMRTBWInterfaceFrame:IsShown() then
-			GMRTBWInterfaceFrame:Hide()
-		else
-			GMRT.F.FightLog_Open()
-		end
-	else
-		JTE_Print("战斗分析开关快捷键需要安装MRT插件")
-	end
+for k, v in pairs(JTEFrameEvents) do
+	JTEFrame:RegisterEvent(k); -- Register all JTEFrameEvents for which handlers have been defined
 end
 
 --命令判断
@@ -211,26 +237,30 @@ function JTE_SlashCommandHandler(msg)
 		--先用空格拆分指令
 		if JTE_SplitString(command," ") then
 			--有前缀指令
-			local command, pre1, pre2, pre3 = JTE_CmdSplit(command)
-			JTE_Print("|CFFFF0000Pre1: |R"..tostring(pre1).." |CFFFF0000Pre2: |R"..(pre2 or ("|CFF7D7D7D"..tostring(pre2).."|R")).." |CFFFF0000Pre3: |R"..(pre3 or ("|CFF7D7D7D"..tostring(pre3).."|R")).." |CFFFF0000Cmd: |R"..command)
+			local cmd, pre1, pre2, pre3 = JTE_CmdSplit(command)
+			if showCommandArgs then
+				JTE_Print("|CFFFF0000Arg1: |R"..tostring(pre1).." |CFFFF0000Arg2: |R"..(pre2 or ("|CFF7D7D7D"..tostring(pre2).."|R")).." |CFFFF0000Arg3: |R"..(pre3 or ("|CFF7D7D7D"..tostring(pre3).."|R")).." |CFFFF0000Cmd: |R"..command)
+			end
 			if pre1 == "s" or pre1 == "g" or pre1 == "r" or pre1 == "p" then
-				JTE_SendStealthMessage(command, pre1, pre2, pre3)
+				JTE_SendStealthMessage(cmd, pre1, pre2, pre3)
+			elseif( pre1 == "嫁祸鼠标指向" or pre1 == "嫁祸鼠标悬浮" or pre1 == "嫁祸鼠标" ) and not pre2 and cmd and cmd ~= "" then
+				JTE.ToTMouseOverToggle(cmd)
 			elseif pre1 == "c" then
-				JTE_StealthCheck(command, pre1, pre2, pre3)
+				JTE_StealthCheck(cmd, pre1, pre2, pre3)
 			elseif pre1 == "d" then
-				JTE_ForToggleDebugShit(command)
+				JTE_ForToggleDebugShit(cmd)
 			elseif pre1 == "e" then
-				JTE_FakeWeakAurasEvent(command)
+				JTE_FakeWeakAurasEvent(cmd)
 			elseif pre1 == "link" or "itemlink" then
-				JTE_ItemLink(command)
+				JTE.ItemLink(cmd)
 			elseif pre1 == "listmax" then
-				JTE_ListResponseMax(command)
+				JTE_ListResponseMax(cmd)
 			elseif pre1 == "ins" or pre1 == "inspect" then
-				JTE_Inspect(command)
+				JTE_Inspect(cmd)
 			elseif pre1 == "irc" or pre1 == "itemrangecheck" then
-				JTE_ItemRangeCheck((pre2 or command), (pre2 and command))
+				JTE_ItemRangeCheck((pre2 or cmd), (pre2 and cmd))
 			elseif pre1 == "gq" or pre1 == "graphicsquality" then
-				JTE_SetGraphicsQuality(command)
+				JTE_SetGraphicsQuality(cmd)
 			else
 				JTE_Print("Wrong cmd")
 			end
@@ -238,6 +268,22 @@ function JTE_SlashCommandHandler(msg)
 			--无前缀指令
 			if( command == "log" or command == "combatlog") then
 				JTE_CombatLog()
+			elseif( command == "showcommand" or command == "showcommandargs" ) then
+				showCommandArgsToggle()
+			elseif( command == "关注抖音领虎冲" ) then
+				JTE.ToTHandleCode(1)
+			elseif( command == "关注b站领虎冲" ) then
+				JTE.ToTHandleCode(2)
+			elseif( command == "领虎冲不是令狐冲" ) then
+				JTE.ToTEnableMyClass()
+			elseif( command == "嫁祸" ) then
+				JTE.ToTCallHelp()
+			elseif( command == "嫁祸状态" ) then
+				JTE.ToTShowCurrentStatus()
+			elseif( command == "嫁祸鼠标指向" or command == "嫁祸鼠标悬浮" or command == "嫁祸鼠标" ) then
+				JTE.ToTMouseOverToggle()
+			elseif( command == "嫁祸距离" or command == "嫁祸范围" or command == "嫁祸超距离" or command == "嫁祸超范围" or command == "嫁祸超出" or command == "嫁祸距离密语" or command == "嫁祸范围密语" or command == "嫁祸超出范围密语" ) then
+				JTE.ToTOORWhisperToggle()
 			elseif command == "d" then
 				JTE_ForToggleDebugShitCommandList()
 			elseif command == "e" then
@@ -254,27 +300,21 @@ function JTE_SlashCommandHandler(msg)
 				JTE_ListResponse()
 			elseif( command == "listreset" or command == "listreset" ) then
 				JTE_ListResponseReset()
+			elseif( command == "largemacro" or command == "bigmacro" or command == "宏界面拉长" or command == "拉长宏界面" ) then
+				JTE.ModifyMacroToggle()
+			elseif( command == "largetalent" or command == "bigtalent" or command == "天赋界面拉长" or command == "拉长天赋界面" or command == "拉长天赋" ) then
+				JTE.ModifyTalentToggle()
 			elseif( command == "rs" or command == "restartsound" ) then
 				JTE_RestartSound()
-			elseif( command == "st" or command == "swaptrinket" ) then
-				JTE_SwapTrinkets()
 			elseif( command == "t" ) then
-				JTE_Test()
+				JTE.ToTManuallyInitializeMacros()
 			elseif( command == "test" ) then
 				DEFAULT_CHAT_FRAME:AddMessage('JTE testing')
 				-- |T iconpath/iconid : width : height : posX : posY : scaleX : scaleY :4:60:4:60 --后4别动，边框和资源管理移位用的
 			else
-				JTE_help();
+				CallHelp();
 			end
 		end
-	end
-end
-function JTE_MountSlashCommandHandler(msg)
-	if( msg ) then
-		--local command = string.lower(msg);
-		--先用空格拆分指令
-		JTE_Mount(JTE_MountCmdSplit(msg))
-
 	end
 end
 
@@ -310,7 +350,7 @@ function JTE_SendStealthMessage(command,pre1,pre2,pre3)
 			["JTEPARTY"] = "|CFFAAAAFFPARTY",
 			["JTETTS"] = "|CFF1785D1TTS"
 		}
-		JTE_Print("who: "..(name == "all" and "|CFFFFFFFFAll|R" or JTE_ClassColorName(name) ).." will say: |CFFFF53A2"..command.."|R in "..convertJTEChannel[msgChanncelList[pre2]])
+		JTE_Print("who: "..(name == "all" and "|CFFFFFFFFAll|R" or ClassColorName(name) ).." will say: |CFFFF53A2"..command.."|R in "..convertJTEChannel[msgChanncelList[pre2]])
 	end
 	
 	return
@@ -346,15 +386,8 @@ function JTE_Test(arg1)
 	if not JTE.addonName then
 		JTE_Print("name is nil")
 	else
-		JTE_Print("name"..JTE.addonName)
+		JTE_Print("name is "..JTE.addonName)
 	end
-end
-
-function JTE_help()
-	JTE_Print("是|RJettie@SMTH|CFF8FFFA2为了自己方便做的小工具")
-	JTE_Print("命令为: |R/jte");
-	JTE_Print("在|R ESC-选项-快捷键 |CFF8FFFA2中可以看到 |CFF1785D1JTE|R 相关的一些快捷键优化");
-
 end
 
 --字符串拆分处理
@@ -388,23 +421,6 @@ function JTE_CmdSplit(str) --最多3参数
 		end
 	else
 		return false
-	end
-end
-function JTE_MountCmdSplit(str) --最多3参数
-	if not str or str == "" then
-		return nil
-	end
-	local groundMountName, flyMountName, swimMountName
-	if JTE_SplitString(str," ") then
-		groundMountName, flyMountName = JTE_SplitString(str," ")
-		if JTE_SplitString(flyMountName," ") then
-			flyMountName, swimMountName = JTE_SplitString(flyMountName," ")
-			return groundMountName, flyMountName, swimMountName
-		else
-			return groundMountName, flyMountName
-		end
-	else
-		return str
 	end
 end
 
@@ -536,7 +552,7 @@ function JTE_ListResponse()
 	if checkresponse and #checkresponse > 0 then
 		JTE_Print("==== "..date("%H:%M:%S %Y").." ====")
 		for i = 1, #checkresponse do
-			local l = "|CFFFF0000History: |R"..i.." ["..JTE_ClassColorName(checkresponse[i].name).."] |CFF40FF40Res: |R"..checkresponse[i].msg
+			local l = "|CFFFF0000History: |R"..i.." ["..ClassColorName(checkresponse[i].name).."] |CFF40FF40Res: |R"..checkresponse[i].msg
 			print(l)
 		end
 		JTE_Print("==== =======Total: "..#checkresponse.."======= ====")
@@ -548,77 +564,6 @@ end
 function JTE_ListResponseReset()
 	checkresponse = {}
 	JTE_Print("|CFF1785D1Response is reset. |CFFFFFFFF"..#checkresponse.."/"..JTEDB.ResponseMax.."|R")
-end
-
---10个档位的画质参数
-local graphicsQuality = {
-	["graphicsSunshafts"] = { 0, 0, 0, 0, 1, 2, 2, 2, 2, 2 },
-	["particleDensity"] = { 10, 10, 25, 50, 80, 80, 100, 100, 100, 100 },
-	["lodObjectMinSize"] = { 0, 0, 0, 0, 0, 0, 0, 0, 30, 20 },
-	["graphicsProjectedTextures"] = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 },
-	["componentTextureLevel"] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-	["lodObjectFadeScale"] = { 50, 80, 90, 91, 92, 93, 100, 101, 125, 150 },
-	["groundEffectAnimation"] = { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1 },
-	["rippleDetail"] = { 0, 0, 0, 0, 1, 1, 1, 1, 1, 2 },
-	["graphicsLiquidDetail"] = { 0, 0, 0, 1, 2, 2, 2, 2, 2, 3 },
-	["graphicsShadowQuality"] = { 0, 0, 0, 1, 2, 3, 3, 4, 5, 5 },
-	["shadowTextureSize"] = { 1024, 1024, 1024, 1024, 1024, 2048, 2048, 2048, 2048, 2048 },
-	["graphicsSpellDensity"] = { 0, 1, 2, 3, 4, 4, 4, 4, 4, 5 },
-	["reflectionMode"] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
-	["sunShafts"] = { 0, 0, 0, 0, 1, 2, 2, 2, 2, 2 },
-	["lodObjectCullSize"] = { 35, 25, 20, 20, 20, 19, 18, 18, 16, 14 },
-	["graphicsGroundClutter"] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
-	["shadowMode"] = { 0, 0, 0, 1, 2, 3, 3, 3, 4, 4 },
-	["groundEffectDensity"] = { 16, 32, 64, 64, 64, 80, 80, 128, 128, 256 },
-	["waterDetail"] = { 0, 0, 0, 1, 2, 2, 2, 2, 2, 3 },
-	["projectedTextures"] = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 },
-	["groundEffectDist"] = { 70, 70, 70, 110, 160, 185, 200, 260, 300, 320 },
-	["graphicsParticleDensity"] = { 1, 1, 2, 3, 4, 5, 6, 6, 6, 6 },
-	["spellClutter"] = { 100, 75, 50, 25, -1, -1, -1, -1, -1, 0 },
-	["shadowBlendCascades"] = { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1 },
-	["graphicsSSAO"] = { 0, 0, 0, 1, 2, 3, 3, 4, 4, 4 },
-	["worldBaseMip"] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-	["shadowSoft"] = { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1 },
-	["SSAO"] = { 0, 0, 0, 1, 2, 3, 3, 4, 4, 4 },
-	["graphicsQuality"] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
-	["particleMTDensity"] = { 33, 33, 50, 80, 80, 100, 100, 100, 100, 100 },
-	["weatherDensity"] = { 0, 1, 1, 1, 3, 3, 3, 3, 3, 3 },
-	["graphicsEnvironmentDetail"] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 },
-	["terrainMipLevel"] = { 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-	["doodadLodScale"] = { 50, 50, 75, 75, 100, 100, 100, 125, 150, 150 },
-	["graphicsTextureResolution"] = { 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 }
-	
-}
---查看画质参数，用于读取当前数据
-function JTE_GetGraphicsQuality()
-	--画质1
-	JTE_Print("---------")
-	for k, v in pairs(graphicsQuality) do
-		if k then
-			local cur = GetCVar(k)
-			print("[\""..k.."\"] = "..cur..",")
-			--SetCVar(k,v)
-		else
-			JTE_Print("|CFF8FFFA2GQ:Get "..k.." failed.")
-			return
-		end
-	end
-end
-
---设置画质
-function JTE_SetGraphicsQuality(qualitylevel)
-	if type(qualitylevel) ~= "number" then qualitylevel = tonumber(qualitylevel) end
-	if not qualitylevel or qualitylevel <= 0 or qualitylevel > 10 then return end
-	local table = graphicsQuality
-	for k, v in pairs(table) do
-		if k then
-			SetCVar(k,v[qualitylevel])
-		else
-			JTE_Print("|CFF8FFFA2Set |CFFFF0000failed|R")
-		end
-	end
-	RestartGx()
-	JTE_Print("|CFF8FFFA2Set GraphicsQuality to : |R"..qualitylevel)
 end
 
 --双显示器用户，快速互相切换
@@ -647,214 +592,6 @@ function JTE_ToggleMacroFrame()
 	end
 end
 
--- TextureAtlasViewer开关
-function JTE_ToggleTextureAtlasViewer()
-	if IsAddOnLoaded("TextureAtlasViewer") then
-		TAV_CoreFrame:SetShown(not TAV_CoreFrame:IsShown())
-	else
-		JTE_Print("|CFF8FFFA2没有检测到TextureAtlasViewer插件")
-	end
-end
-
---坐骑检测
-JTE.Mount = {}
-local JTE_isMountCollected = function(mountNameOrId) --return name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID
-	-- local mountIDs = C_MountJournal.GetMountIDs()
-	if not JTE.Mount.MountIDs then return end
-	for _, v in pairs(JTE.Mount.MountIDs) do
-		local name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID = C_MountJournal.GetMountInfoByID(v)
-		if spellID == mountNameOrId or name == mountNameOrId then
-			if isCollected then
-				return true, name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID
-			else
-				return false, name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID
-			end
-		end
-	end
-end
-local JTE_UpdateMountIDs = function()
-	if not JTE.Mount.MountIDs then
-		JTE.Mount.MountIDs = C_MountJournal.GetMountIDs()
-	else
-		local newMountIDs = C_MountJournal.GetMountIDs()
-		if #JTE.Mount.MountIDs ~= #newMountIDs then
-			JTE.Mount.MountIDs = newMountIDs
-		end
-	end
-end
---Traveler's Tundra Mammoth
-function JTE_TravelersTundraMammoth()
-	JTE_UpdateMountIDs()
-
-	if not InCombatLockdown() then
-		local TravelersTundraMammothSpellID = UnitFactionGroup("player") == "Alliance" and 61425 or 61447;
-		local _, itemLink = GetItemInfo(UnitFactionGroup("player") == "Alliance" and 44235 or 44234);
-		local isCollected, name, spellID, icon, isActive, isUsable, sourceType, isFavorite, isFactionSpecific, faction, shouldHideOnChar, isCollected, mountID = JTE_isMountCollected(TravelersTundraMammothSpellID)
-		if mountID and isCollected then
-			C_MountJournal.SummonByID(mountID)
-			return
-		else
-			JTE_Print("达拉然的<特殊坐骑商人>梅尔·弗兰希斯可以购买"..itemLink)
-		end
-	end
-end
-
---坐骑宏 /run JTE_Mount("奥的灰烬","迅捷幽灵虎","迅捷幽灵虎")
-function JTE_Mount(groundMountNameArray,flyMountNameArray,swimMountNameArray)
-	JTE_UpdateMountIDs()
-
-	local getMountNames = function(namesString)
-		if not namesString then return end
-
-		local nameTable = {}
-		local splitByComma = strsplittable(",", namesString)
-
-		for i = 1, #splitByComma do
-			local splitBySemicolon = {}
-			splitBySemicolon[i] = strsplittable(";", splitByComma[i])
-			for j = 1, #splitBySemicolon[i] do
-				local splitByMinus = {}
-				splitByMinus[j] = strsplittable("-", splitBySemicolon[i][j])
-				for k = 1, #splitByMinus[j] do
-					if splitByMinus[j][k] and splitByMinus[j][k] ~= "" then
-						tinsert(nameTable, splitByMinus[j][k])
-					end
-				end
-			end
-		end
-		for l = #nameTable, 1, -1 do
-			if not JTE_isMountCollected(nameTable[l]) then
-				tremove(nameTable, l)
-			end
-		end
-		return nameTable
-	end
-
-	local gmMountNames = getMountNames(groundMountNameArray)
-	local groundMountName
-	if gmMountNames and #gmMountNames > 0 then
-		groundMountName = gmMountNames[math.random(#gmMountNames)]
-	else
-		groundMountName = nil
-	end
-
-	local flyMountNames = getMountNames(flyMountNameArray)
-	local flyMountName
-	if flyMountNames and #flyMountNames > 0 then
-		flyMountName = flyMountNames[math.random(#flyMountNames)]
-	else
-		flyMountName = nil
-	end
-
-	local swimMountNames = getMountNames(swimMountNameArray)
-	local swimMountName
-	if swimMountNames and #swimMountNames > 0 then
-		swimMountName = swimMountNames[math.random(#swimMountNames)]
-	else
-		swimMountName = nil
-	end
-
-	--在达拉然且不在平台时使用陆地坐骑
-	local gmSpellID, gmIsCollected, gmMountID, fmSpellID, fmIsCollected, fmMountID, smSpellID, smIsCollected, smMountID
-	if groundMountName then
-		local _, _, spellID, _, _, _, _, _, _, _, _, isCollected, mountID = JTE_isMountCollected(groundMountName)
-		gmSpellID, gmIsCollected, gmMountID = spellID, isCollected, mountID
-	else
-		JTE_Print("自动适应达拉然的坐骑宏，格式为:")
-		JTE_Print("|R/JTEM 陆地坐骑名 飞行坐骑名 水中坐骑名(选填)")
-		JTE_Print("例如:")
-		JTE_Print("|R/JTEM 迅捷幽灵虎 奥的灰烬 骑乘乌龟")
-		return
-	end
-	if flyMountName then
-		local _, _, spellID, _, _, _, _, _, _, _, _, isCollected, mountID = JTE_isMountCollected(flyMountName)
-		fmSpellID, fmIsCollected, fmMountID = spellID, isCollected, mountID
-	else
-		fmSpellID, fmIsCollected, fmMountID = gmSpellID, gmIsCollected, gmMountID
-		flyMountName = groundMountName
-	end
-	if swimMountName then
-		local _, _, spellID, _, _, _, _, _, _, _, _, isCollected, mountID = JTE_isMountCollected(swimMountName)
-		smSpellID, smIsCollected, smMountID = spellID, isCollected, mountID
-	else
-		smSpellID, smIsCollected, smMountID = fmSpellID, fmIsCollected, fmMountID
-		swimMountName = flyMountName
-	end
-	local unknownMount = function(mountName)
-		JTE_Print("你还没有学会 |R"..mountName)
-	end
-	if ( C_Map.GetBestMapForUnit("player")==125 and GetSubZoneText()~="克拉苏斯平台" ) or ( C_Map.GetBestMapForUnit("player")==126 and GetSubZoneText()=="达拉然下水道" ) then
-		if gmMountID and gmIsCollected then
-			C_MountJournal.SummonByID(gmMountID)
-		else
-			unknownMount(groundMountName)
-		end
-	elseif IsSubmerged() and not IsMounted() then
-		if smMountID and smIsCollected then
-			C_MountJournal.SummonByID(smMountID)
-		else
-			unknownMount(swimMountName)
-		end
-	elseif IsFlyableArea() then
-		if fmMountID and fmIsCollected then
-			C_MountJournal.SummonByID(fmMountID)
-		else
-			unknownMount(flyMountName)
-		end
-	else
-		if gmMountID and gmIsCollected then
-			C_MountJournal.SummonByID(gmMountID)
-		else
-			unknownMount(groundMountName)
-		end
-	end
-end
-
---随机偏好坐骑
-function JTE_SummonRandomFavoriteMount()
-	C_MountJournal.SummonByID(0)
-end
-
---嫁祸宏设置嫁祸目标
-function JTE_ToTSetTarget(setAorB)
-	if not ( setAorB == "A" or setAorB == "a" or setAorB == "B" or setAorB == "b" or setAorB == 1 or setAorB == 2 ) then
-		JTE_Print(iconStr(236283)..'设置嫁祸目标只可以是 |CFFFFFFFF"A"|R 或者 |CFFFFFFFF"B"|R')
-		return
-	end
-	local playerClassName, playerClass = UnitClass("player")
-	if playerClass ~= "ROGUE" then
-		JTE_Print(iconStr(236283)..''..GetSpellLink(57934)..'是 |CFFFFF569盗贼|R 的限定技能 |C'..select(4, GetClassColor(playerClass))..playerClassName..' |R无法使用')
-		return
-	end
-
-	--检测有没有WA插件
-	if JTE.IsAddOnLoaded["WeakAuras"] then
-		--检测有没有嫁祸WA
-		if WeakAuras.GetRegion("宏看右边-自定义选项") or WeakAuras.GetRegion("宏看右边-自定义选项 2") then
-			--有嫁祸WA
-			if IsInGroup() then
-				if setAorB == "A" or setAorB == "a" or setAorB == 1 then
-					WeakAuras.ScanEvents('SETJHTARGETA')
-				elseif setAorB == "B" or setAorB == "b" or setAorB == 2 then
-					WeakAuras.ScanEvents('SETJHTARGETB')
-				end
-			else
-				if not JTE.Spam["ToTNotInGroup"] then
-					JTE.Spam["ToTNotInGroup"] = GetTime() - 1
-				end
-				if JTE.Spam["ToTNotInGroup"] < GetTime() then
-					JTE_Print(iconStr(236283).."|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 组队时才能使用嫁祸哟 (;P)")
-					JTE.Spam["ToTNotInGroup"] = GetTime() + 0.5
-				end
-			end
-		else
-			JTE_Print("没有检测到 "..iconStr(236283).."|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 请先导入嫁祸WA")
-		end
-	else
-		JTE_Print("设置嫁祸虚拟焦点需要安装插件 |CFFFFFFFFWeakAuras|R 并导入 "..iconStr(236283).."|CFFFFFFFF[|RJT嫁祸WA|CFFFFFFFF]|R 才能使用")
-	end
-end
-
 --显示/隐藏友方玩家姓名（隐藏后主城防掉帧）
 function JTE_ToggleFriendlyPlayerName()
 	if GetCVar("UnitNameFriendlyPlayerName") == "1" then
@@ -864,99 +601,25 @@ function JTE_ToggleFriendlyPlayerName()
 	end
 end
 
-local kirinTorTeleportId = 54406
---local kirinTorTeleportId = 51723 -- 刀扇测试
-local kirinTorRings = {
-	--ilv 200
-	[40585] = true,
-	[40586] = true,
-	[44934] = true,
-	[44935] = true,
-	--ilv 213
-	[45688] = true,
-	[45689] = true,
-	[45690] = true,
-	[45691] = true,
-	--ilv 226
-	[48954] = true,
-	[48955] = true,
-	[48956] = true,
-	[48957] = true,
-	--ilv 251
-	-- [51557] = true,
-	-- [51558] = true,
-	-- [51559] = true,
-	-- [51560] = true,
-}
-
---测试物品名字，等ICC更新后再测一次删除
-function JTE_PrintItemNames()
-	local count = 0
-	for k, v in pairs(kirinTorRings) do
-		local name = GetItemInfo(k)
-		JTE_Print("id="..k.." name="..(name or "NONAME"))
-		if name then
-			count = count + 1
-		end
-	end
-	JTE_Print("Total #|CFFFFFFFF"..count.." rings.")
-end
-
-function JTE_SaveInventoryItemId()
-	--装备记录
-	for i = 1, 19 do
-		local itemId = GetInventoryItemID("player", i)
-		if itemId then
-			JTE.previousEquipmentId[i] = itemId
-		end
-	end
-end
-
-function JTE_OnEquipmentChanged(equipmentSlot, hasCurrent)
-	-- 戒指
-	if equipmentSlot == INVSLOT_FINGER1 or equipmentSlot == INVSLOT_FINGER2 then
-		--肯瑞托传送戒指换回来功能,穿戴肯瑞托戒指时记录
-		local newId = GetInventoryItemID("player", equipmentSlot)
-		if kirinTorRings[newId] then
-			for k, v in pairs(JTE.waitToSwitchBack) do
-				if v == newId then
-					JTE.waitToSwitchBack[k] = nil
-				end
-			end
-			JTE.waitToSwitchBack[equipmentSlot] = (JTE.previousEquipmentId[equipmentSlot] ~= newId) and JTE.previousEquipmentId[equipmentSlot] or nil
-			local itemLink = select(2, GetItemInfo(newId))
-			local previousItemLink = select(2, GetItemInfo(JTE.waitToSwitchBack[equipmentSlot]))
-			JTE_Print("已佩戴 "..(itemLink or "[肯瑞托戒指]").. " 等待传送后换回 "..(previousItemLink or "之前的戒指"))
-			JTEFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+-- MRT 战斗分析开关
+function JTE_MRTFightLogToggle()
+	if JTE.IsAddOnLoaded["MRT"] then
+		if GMRTBWInterfaceFrame and GMRTBWInterfaceFrame:IsShown() then
+			GMRTBWInterfaceFrame:Hide()
 		else
-			if JTE.waitToSwitchBack[equipmentSlot] then
-				JTE.waitToSwitchBack[equipmentSlot] = nil
-			end
+			GMRT.F.FightLog_Open()
 		end
+	else
+		JTE_Print("战斗分析开关快捷键需要安装MRT插件")
 	end
-	if not JTE.waitToSwitchBack[INVSLOT_FINGER1] and not JTE.waitToSwitchBack[INVSLOT_FINGER2] then
-		JTEFrame:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-	end
-
-	JTE_SaveInventoryItemId()
-	--换饰品的换回来功能
-	JTE_SwapTrinketsBack(equipmentSlot, hasCurrent)
 end
 
-function JTE_OnSpellCastSucceeded(...)
-	local unitTarget, castGUID, spellId = ...
-	--肯瑞托戒指传送释放成功
-	if unitTarget == "player" and spellId == kirinTorTeleportId then
-		if next(JTE.waitToSwitchBack) then
-			for k, v in pairs(JTE.waitToSwitchBack) do
-				if k == INVSLOT_FINGER1 or k == INVSLOT_FINGER2 then
-					EquipItemByName(v, k)
-					local _, itemLink = GetItemInfo(v)
-					JTE_Print("肯瑞托戒指"..(GetSpellLink(kirinTorTeleportId) or "传送").."后自动换回之前的: "..(itemLink or v))
-					JTE.waitToSwitchBack[k] = nil
-				end
-			end
-		end
+-- TextureAtlasViewer开关
+function JTE_ToggleTextureAtlasViewer()
+	if IsAddOnLoaded("TextureAtlasViewer") then
+		TAV_CoreFrame:SetShown(not TAV_CoreFrame:IsShown())
+	else
+		JTE_Print("|CFF8FFFA2没有检测到TextureAtlasViewer插件")
 	end
 end
 
@@ -1013,53 +676,6 @@ local regPrefix = function()
 end
 regPrefix()
 
---交换饰品重置内置ICD
-JTE.TrinketsSwapping = false
-JTE.TrinketsSwapWait = false
-function JTE_SwapTrinkets()
-	if not InCombatLockdown() then
-		local trinket0SlotId, trinket1SlotId = GetInventoryItemID("player", 13), GetInventoryItemID("player", 14)
-		local Trinket0, Trinket1  = INVSLOT_TRINKET1, INVSLOT_TRINKET2
-		if not trinket0SlotId and trinket1SlotId then
-			Trinket0, Trinket1 = Trinket1, Trinket0
-		elseif not trinket0SlotId and not trinket1SlotId then
-			JTE_Print("没有装备任何饰品")
-			return
-		end
-		ClearCursor();
-		PickupInventoryItem(Trinket0);
-		if CursorHasItem() then
-			EquipCursorItem(Trinket1);
-		end
-		JTE.TrinketsSwapping = true
-		JTE.TrinketsSwapWait = true
-	end
-end
-function JTE_SwapTrinketsBack(equipmentSlot, hasCurrent)
-	if JTE.TrinketsSwapping and JTE.TrinketsSwapWait then
-		JTE.TrinketsSwapWait = false
-		--print("Wait JTE.TrinketsSwapping="..JTE.TrinketsSwapping)
-		return
-	elseif JTE.TrinketsSwapping and not JTE.TrinketsSwapWait then
-		local trinket0SlotId, trinket1SlotId = GetInventoryItemID("player", 13), GetInventoryItemID("player", 14)
-		local Trinket0, Trinket1  = INVSLOT_TRINKET1, INVSLOT_TRINKET2
-		if not trinket0SlotId and trinket1SlotId then
-			Trinket0, Trinket1 = Trinket1, Trinket0
-		elseif not trinket0SlotId and not trinket1SlotId then
-			JTE_Print("没有装备任何饰品")
-			return
-		end
-		if not InCombatLockdown() then
-			ClearCursor()
-			PickupInventoryItem(Trinket0)
-			if CursorHasItem() then
-				EquipCursorItem(Trinket1)
-			end
-		end
-		JTE.TrinketsSwapping = false
-	end
-end
-
 --开启关闭战斗记录
 function JTE_CombatLog()
 	if LoggingCombat() then
@@ -1071,31 +687,23 @@ function JTE_CombatLog()
 	end
 end
 
---玩家名字染色
-function JTE_ClassColorName(unit)
-	if unit and UnitExists(unit) then
-		local name = UnitName(unit)
-		local _, class = UnitClass(unit)
-		if not class then
-			return name or unit
-		else
-			local classData = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
-			local coloredName = ("|c%s%s|r"):format(classData.colorStr, name)
-			return coloredName
-		end
-	else
-		return unit
-	end
-end
-JTE.ClassColorName = JTE_ClassColorName
-
 --带前缀的JTE_Print()
-function JTE_Print(msg)
+function JTE_Print(msg, ...)
 	local header = iconStr(135451).."[|CFF8FFFA2JTE|R]|CFF8FFFA2 : "
 	if type(msg) ~= "string" and type(msg) ~= "number" then
-		msg = tostring(msg)
+		msg = tostring(msg) or ""
 	end
-	print(header..msg)
+
+	local arg = {...}
+	if #arg > 0 then
+		for i = 1, #arg do
+			if type(arg[i]) ~= "string" and type(arg[i]) ~= "number" then
+				arg[i] = tostring(arg[i]) or ""
+			end
+		end
+	end
+
+	print(header..msg, unpack(arg))
 end
 
 --Spell Check 
@@ -1175,90 +783,14 @@ function JTE_ListItemRangeSaved()
 	end
 end
 
-function JTE_ItemLink(itemId)
+local MakeItemLink = function(itemId)
 	local _, itemLink = GetItemInfo(itemId)
 	JTE_Print(itemLink)
 	return itemLink
 end
+JTE.ItemLink = MakeItemLink
 
---宏界面拉长，天赋界面拉长
-do
-    --宏界面
-    local AddSelectHeight = 100
-    local AddTextHeight = 150
-    local tempScrollPer = nil
-    local Init = function()
-        hooksecurefunc(MacroFrame, "SelectMacro", function(self, index)
-            if tempScrollPer then
-                MacroFrame.MacroSelector.ScrollBox:SetScrollPercentage(tempScrollPer)
-                tempScrollPer = nil
-            end
-        end)
-        MacroFrame.MacroSelector:SetHeight(146 + AddSelectHeight)
-        MacroHorizontalBarLeft:SetPoint("TOPLEFT", 2, -210 - AddSelectHeight)
-        MacroFrameSelectedMacroBackground:SetPoint("TOPLEFT", 2, -218 - AddSelectHeight)
-        MacroFrameTextBackground:SetPoint("TOPLEFT", 6, -289 - AddSelectHeight)
-        local h = MacroFrame:GetHeight()
-        MacroFrame:SetHeight(h + AddTextHeight + AddSelectHeight)
-        MacroFrameScrollFrame:SetHeight(85 + AddTextHeight)
-        MacroFrameText:SetHeight(85 + AddTextHeight)
-        MacroFrameTextButton:SetHeight(85 + AddTextHeight)
-        MacroFrameTextBackground:SetHeight(95 + AddTextHeight)
-    end
-    if MacroFrame then
-        Init()
-    else
-        local f = CreateFrame("Frame");
-        f:SetScript("OnEvent", function(self, evnet, addon)
-            if evnet == "ADDON_LOADED" then
-                if addon == "Blizzard_MacroUI" then
-                    Init()
-                    f:UnregisterEvent("ADDON_LOADED");
-                end
-            elseif MacroFrame then
-                tempScrollPer = MacroFrame.MacroSelector.ScrollBox.scrollPercentage
-            end
-        end)
-        f:RegisterEvent("ADDON_LOADED")
-        --MacroFrame会在每次显示的时候注册UPDATE_MACROS，所以肯定比我们执行的要晚
-        --这一切前提建立在这个条件上
-        f:RegisterEvent("UPDATE_MACROS")
-    end
-	--调整天赋界面高度
-	if PlayerTalentFrame then
-		--PlayerTalentFrame:GetHeight()=512
-		PlayerTalentFrame:SetHeight(900)
-	else
-		local f = CreateFrame("Frame");
-        f:SetScript("OnEvent", function(self, evnet, addon)
-            if evnet == "ADDON_LOADED" then
-                if addon == "Blizzard_TalentUI" then
-                    PlayerTalentFrame:SetHeight(900)
-
-                    f:UnregisterEvent("ADDON_LOADED");
-                end
-            end
-        end)
-        f:RegisterEvent("ADDON_LOADED")
-	end
-	if not GlyphFrame then
-		local f = CreateFrame("Frame");
-        f:SetScript("OnEvent", function(self, evnet, addon)
-            if evnet == "ADDON_LOADED" then
-                if addon == "Blizzard_GlyphUI" then
-					local yOffset = -180
-					GlyphFrameBackground:SetPoint("TOPLEFT",14,-46 + yOffset)
-					GlyphFrameGlyph1:SetPoint("CENTER", -15, 335 + yOffset)
-					GlyphFrameGlyph2:SetPoint("CENTER", -14, 93 + yOffset)
-					GlyphFrameGlyph3:SetPoint("TOPLEFT", 28, -133 + yOffset)
-					GlyphFrameGlyph4:SetPoint("BOTTOMRIGHT", -56, 558 + yOffset)
-					GlyphFrameGlyph5:SetPoint("TOPRIGHT", -56, -133 + yOffset)
-					GlyphFrameGlyph6:SetPoint("BOTTOMLEFT", 26, 558 + yOffset)
-                    f:UnregisterEvent("ADDON_LOADED");
-                end
-            end
-        end)
-        f:RegisterEvent("ADDON_LOADED")
-	end
+local GetVersion = function()
+	return JTE.Version
 end
-
+JTE.GetVersion = GetVersion

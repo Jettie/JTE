@@ -1,11 +1,16 @@
-## Interface: 30403
+## Interface: 30404
 ## Author: Jettie
 ## Title: JTE
 ## Notes: |CFF666666By Jettie@SMTH|R|N|CFF8FFFA2Jettie Tricks Everything
-## Title-zhCN: [|CFFFF53A2JT|R]辅助玩具|CFFFF53A2JTE|R - |CFF8FFFA2JTE|R
+## Title-zhCN: [|CFFFF53A2JT|R]玩具包|CFFFF53A2JTE|R - |CFF8FFFA2JTE|R
 ## Notes-zhCN: |CFF666666By Jettie@SMTH|R|N|CFF33AAFFJTE|R|N|CFF8FFFA2全是一些方便的小功能
-## Version: 1.0.25
+## Version: 1.0.30
 ## SavedVariables: JTEDB
 
 JTE.lua
-Bindings.xml
+JTE_KirinTorRing.lua
+JTE_TrinketSwapBack.lua
+JTE_Mount.lua
+JTE_ModifyFrame.lua
+JTE_GraphicsHotKey.lua
+JTE_TrickOfTheTrade.lua
