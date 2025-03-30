@@ -89,9 +89,8 @@ SlashCmdList["JTE"] = function(msg)
 	JTE_SlashCommandHandler(msg);
 end
 
-
 local CallHelp = function()
-	JTE_Print("========|CFF1785D1JTE|R玩具包========")
+	JTE_Print("========|CFF1785D1JTE|R玩具包(|CFFFF53A2"..JTE.version.."|R)========")
 	JTE_Print("是|RJettie@SMTH|CFF8FFFA2为了自己方便做的小工具")
 	JTE_Print("在|R ESC-选项-快捷键 |CFF8FFFA2中可以看到 |CFF1785D1JTE|R 相关的一些快捷键优化")
 	JTE_Print("输入 |CFFFFFFFF/jte 宏界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 宏界面拉长功能")
@@ -235,6 +234,7 @@ function JTE_SlashCommandHandler(msg)
 	if( msg ) then
 		local command = string.lower(msg);
 		--先用空格拆分指令
+		PlaySound(SOUNDKIT.TUTORIAL_POPUP)
 		if JTE_SplitString(command," ") then
 			--有前缀指令
 			local cmd, pre1, pre2, pre3 = JTE_CmdSplit(command)
@@ -282,7 +282,7 @@ function JTE_SlashCommandHandler(msg)
 				JTE.ToTShowCurrentStatus()
 			elseif( command == "嫁祸鼠标指向" or command == "嫁祸鼠标悬浮" or command == "嫁祸鼠标" ) then
 				JTE.ToTMouseOverToggle()
-			elseif( command == "嫁祸距离" or command == "嫁祸范围" or command == "嫁祸超距离" or command == "嫁祸超范围" or command == "嫁祸超出" or command == "嫁祸距离密语" or command == "嫁祸范围密语" or command == "嫁祸超出范围密语" ) then
+			elseif( command == "嫁祸距离" or command == "嫁祸范围" or command == "嫁祸超距离" or command == "嫁祸超范围" or command == "嫁祸超出" or command == "嫁祸超出范围" or command == "嫁祸超出距离" or command == "嫁祸距离密语" or command == "嫁祸范围密语" or command == "嫁祸超出范围密语" or command == "嫁祸超出距离密语" ) then
 				JTE.ToTOORWhisperToggle()
 			elseif command == "d" then
 				JTE_ForToggleDebugShitCommandList()

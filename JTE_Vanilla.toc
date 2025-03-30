@@ -4,7 +4,7 @@
 ## Notes: |CFF666666By Jettie@SMTH|R|N|CFF8FFFA2Jettie Tricks Everything
 ## Title-zhCN: [|CFFFF53A2JT|R]玩具包|CFFFF53A2JTE|R - |CFF8FFFA2JTE|R
 ## Notes-zhCN: |CFF666666By Jettie@SMTH|R|N|CFF33AAFFJTE|R|N|CFF8FFFA2全是一些方便的小功能
-## Version: 1.0.30
+## Version: 1.1.3
 ## SavedVariables: JTEDB
 
 JTE.lua
