@@ -270,10 +270,12 @@ function JTE_SlashCommandHandler(msg)
 				JTE_CombatLog()
 			elseif( command == "showcommand" or command == "showcommandargs" ) then
 				showCommandArgsToggle()
-			elseif( command == "关注抖音领虎冲" ) then
+			elseif( command == "领虎冲" ) then
 				JTE.ToTHandleCode(1)
-			elseif( command == "关注b站领虎冲" ) then
+			elseif( command == "抖音领虎冲" or command == "抖音JT领虎冲") then
 				JTE.ToTHandleCode(2)
+			elseif( command == "关注抖音领虎冲" or command == "关注抖音JT领虎冲") then
+				JTE.ToTHandleCode(3)
 			elseif( command == "领虎冲不是令狐冲" ) then
 				JTE.ToTEnableMyClass()
 			elseif( command == "嫁祸" ) then
@@ -370,16 +372,24 @@ function JTE_StealthCheck(command, pre1, pre2, pre3)
 			["trinketsound"] = "trinketsound",
 			["ts"] = "trinketsound",
 		}
-		
+
 		if checkCmd[command] then
 			local channel = sendChannelList[pre2] and sendChannelList[pre2] or ( IsInGroup() and (IsInRaid() and "RAID" or "PARTY" ) or "GUILD" )
 			C_ChatInfo.SendAddonMessage("JTECHECK", checkCmd[command], channel, nil)
 			JTE_Print("Checking: |CFFFF53A2"..checkCmd[command])
 		end
-
 	end
 end
 
+JTE.WADB = JTE.WADB or {}
+local RegisterVersionDB = function(JTAddOnName, version)
+	if JTAddOnName and version then
+		JTE.WADB[JTAddOnName] = {
+			version = version,
+		}
+	end
+end
+JTE.RVDB = RegisterVersionDB
 
 function JTE_Test(arg1)
 	--判断职业，大写，判断图标内容，播放声音
