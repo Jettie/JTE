@@ -18,6 +18,11 @@ local colorNameByClass = JTE.ColorNameByClass
 local DEFAULT_NUM_MACROS = 1
 local MAX_NUM_MACROS = 4
 local WA_NAME = "JT嫁祸WA"
+local spam = {
+	spamInterval = 3,
+	lastPTUNoticeTime = 0,
+	lastCreateOrEditMacroTime = 0,
+}
 
 local commonDefaltMacroTextStr = ([[#showtooltip %s
 /cast [@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
@@ -59,11 +64,11 @@ local spellListForAllClasses = {
 		spellId = 34477,
 		shortName = "误导",
 		macroTextStr = ([[#showtooltip %s
-/cast [mod:alt,@pet,exists,nodead][@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
+/cast [@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
 /stopspelltarget]]),
-		macroTextOnlyTargetStr = ([[/cast [mod:alt,@pet,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextOnlyTargetStr = ([[/cast [@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
-		macroTextWithMouseoverStr = ([[/cast [mod:alt,@pet,exists,nodead][@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextWithMouseoverStr = ([[/cast [@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
 		canTargetMyPet = true,
 	},
@@ -88,11 +93,11 @@ local spellListForAllClasses = {
 		spellId = 49016,
 		shortName = "狂热",
 		macroTextStr = ([[#showtooltip %s
-/cast [mod:alt,@player][@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
+/cast [@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
 /stopspelltarget]]),
-		macroTextOnlyTargetStr = ([[/cast [mod:alt,@player][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextOnlyTargetStr = ([[/cast [@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
-		macroTextWithMouseoverStr = ([[/cast [mod:alt,@player][@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextWithMouseoverStr = ([[/cast [@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
 		isTalentSkill = true,
 		allowSelfTarget = true,
@@ -102,11 +107,11 @@ local spellListForAllClasses = {
 		spellId = 10060,
 		shortName = "灌注",
 		macroTextStr = ([[#showtooltip %s
-/cast [mod:alt,@player][@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
+/cast [@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
 /stopspelltarget]]),
-		macroTextOnlyTargetStr = ([[/cast [mod:alt,@player][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextOnlyTargetStr = ([[/cast [@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
-		macroTextWithMouseoverStr = ([[/cast [mod:alt,@player][@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextWithMouseoverStr = ([[/cast [@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
 		isTalentSkill = true,
 		allowSelfTarget = true,
@@ -123,13 +128,26 @@ local spellListForAllClasses = {
 		spellId = 29166,
 		shortName = "激活",
 		macroTextStr = ([[#showtooltip %s
-/cast [mod:alt,@player][@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
+/cast [@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
 /stopspelltarget]]),
-		macroTextOnlyTargetStr = ([[/cast [mod:alt,@player][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextOnlyTargetStr = ([[/cast [@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
-		macroTextWithMouseoverStr = ([[/cast [mod:alt,@player][@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+		macroTextWithMouseoverStr = ([[/cast [@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
 /stopspelltarget]]),
 		allowSelfTarget = true,
+	},
+	["SHAMAN"] = {
+		spellId = 49284,
+		shortName = "地盾",
+		macroTextStr = ([[#showtooltip %s
+/cast [@mouseover,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,nodead]%s
+/stopspelltarget]]),
+		macroTextOnlyTargetStr = ([[/cast [@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+/stopspelltarget]]),
+		macroTextWithMouseoverStr = ([[/cast [@mouseover,help,exists,nodead][@%s,help,exists,nodead][@target,help,exists,nodead][@targettarget,help,exists,nodead]%s
+/stopspelltarget]]),
+		allowSelfTarget = true,
+		isTalentSkill = true,
 	}
 }
 
@@ -159,11 +177,15 @@ end
 
 -- 只是为了天赋技能的判断，非天赋技能哪怕低级没学也一样true
 local skillAviable = true
+
 local OnPlayerTalentUpdate = function()
 	if spellListForAllClasses[myClass] and spellListForAllClasses[myClass].isTalentSkill then
 		if not IsSpellKnown(spellListForAllClasses[myClass].spellId) then
 			if IsToTEnabledForMe() then
-				JTE_Print(totHeader.."没有激活"..theSpellLink.."天赋 |cff94EF00A|r|cffEF573EB|r|cff28ABE0X|r|cffF4D81EY|r按钮|CFFFF0000自动隐藏|R")
+				if spam.lastPTUNoticeTime + spam.spamInterval < GetTime() then
+					spam.lastPTUNoticeTime = GetTime()
+					JTE_Print(totHeader.."没有激活"..theSpellLink.."天赋 |cff94EF00A|r|cffEF573EB|r|cff28ABE0X|r|cffF4D81EY|r按钮|CFFFF0000自动隐藏|R")
+				end
 			end
 			skillAviable = false
 			return
@@ -171,11 +193,14 @@ local OnPlayerTalentUpdate = function()
 	end
 	skillAviable = true
 	if IsToTEnabledForMe() then
-		JTE_Print(totHeader..theSpellLink.."天赋已激活 |cff94EF00A|r|cffEF573EB|r|cff28ABE0X|r|cffF4D81EY|r按钮|CFF00FF00自动激活|R")
-		JTE_Print(totHeader.."使用|CFF1785D1JTE|R自动生成的宏(|cff94EF00JTA|r"..(SV.enableNumMacros > DEFAULT_NUM_MACROS and "/|cffEF573EJTB|r" or "")..(SV.enableNumMacros > 2 and "/|cff28ABE0JTX|r" or "")..(SV.enableNumMacros > 3 and "/|cffF4D81EJTY|r" or "")..")来释放"..theSpellLink.."技能")
-		JTE_Print(totHeader.."当前"..theSpellLink.."宏数量为 |CFFFF53A2"..(SV.enableNumMacros or "?").."|R 个")
-		if SV.enableNumMacros == DEFAULT_NUM_MACROS then
-			JTE_Print(totHeader.."输入 |CFFFFFFFF/JTE 领虎冲|R 开启额外的 "..theSpellLink.."宏 -> |cffEF573EJTB|r")
+		if spam.lastPTUNoticeTime + spam.spamInterval < GetTime() then
+			spam.lastPTUNoticeTime = GetTime()
+			JTE_Print(totHeader..theSpellLink.."天赋已激活 |cff94EF00A|r|cffEF573EB|r|cff28ABE0X|r|cffF4D81EY|r按钮|CFF00FF00自动激活|R")
+			JTE_Print(totHeader.."使用|CFF1785D1JTE|R自动生成的宏(|cff94EF00JTA|r"..(SV.enableNumMacros > DEFAULT_NUM_MACROS and "/|cffEF573EJTB|r" or "")..(SV.enableNumMacros > 2 and "/|cff28ABE0JTX|r" or "")..(SV.enableNumMacros > 3 and "/|cffF4D81EJTY|r" or "")..")来释放"..theSpellLink.."技能")
+			JTE_Print(totHeader.."当前"..theSpellLink.."宏数量为 |CFFFF53A2"..(SV.enableNumMacros or "?").."|R 个")
+			if SV.enableNumMacros == DEFAULT_NUM_MACROS then
+				JTE_Print(totHeader.."输入 |CFFFFFFFF/JTE 领虎冲|R 开启额外的 "..theSpellLink.."宏 -> |cffEF573EJTB|r")
+			end
 		end
 	end
 end
@@ -377,8 +402,11 @@ local CreateOrEditMacro = function(macroData, silent)
 				UpdateWaitOOC(id, nil)
 			end
 
-			local text = unitName and (theSpellLink.."宏(" .. coloredMacroName .. ")更新目标为 -> " .. classColorName(unitName)) or (theSpellLink.."宏(" .. coloredMacroName .. ")刷新成功")
-			JTE_Print(totHeader..text)
+			if spam.lastCreateOrEditMacroTime + spam.spamInterval < GetTime() then
+				spam.lastCreateOrEditMacroTime = GetTime()
+				local text = unitName and (theSpellLink.."宏(" .. coloredMacroName .. ")更新目标为 -> " .. classColorName(unitName)) or (theSpellLink.."宏(" .. coloredMacroName .. ")刷新成功")
+				JTE_Print(totHeader..text)
+			end
 		else
 			-- 暂定不自动删除宏，避免多角色使用不同数量的宏，换号会来回增伤宏，动作条里的宏会消失，所以还是手动删除吧
 			-- if GetMacroIndexByName(macroName) ~= 0 then
@@ -387,12 +415,15 @@ local CreateOrEditMacro = function(macroData, silent)
 			WeakAuras.ScanEvents("JT_TOT_BUTTON_HIDE", id)
 		end
 	else
-		if not spellListForAllClasses[myClass] then
-			JTE_Print(totHeader.."当前职业 >"..colorNameByClass(myClassName, myClass).."< 没有类嫁祸的技能")
-			return
-		elseif myClass ~= "ROGUE" and not (SV and SV.EnableAllClasses) then
-			JTE_Print(totHeader.."当前职业 >"..colorNameByClass(myClassName, myClass).."< 可开启技能宏: "..GetSpellLinkWithIcon(spellListForAllClasses[myClass].spellId))
-			return
+		if spam.lastCreateOrEditMacroTime + spam.spamInterval < GetTime() then
+			spam.lastCreateOrEditMacroTime = GetTime()
+			if not spellListForAllClasses[myClass] then
+				JTE_Print(totHeader.."当前职业 >"..colorNameByClass(myClassName, myClass).."< 没有类嫁祸的技能")
+				return
+			elseif myClass ~= "ROGUE" and not (SV and SV.EnableAllClasses) then
+				JTE_Print(totHeader.."当前职业 >"..colorNameByClass(myClassName, myClass).."< 可开启技能宏: "..GetSpellLinkWithIcon(spellListForAllClasses[myClass].spellId))
+				return
+			end
 		end
 	end
 end
@@ -867,12 +898,14 @@ end
 JTE.ToTShowCurrentStatus = ShowCurrentStatus
 
 local CallHelp = function()
-	JTE_Print(totHeader.."===|CFF1785D1JTE|R(|CFFFF53A2"..JTE.version.."|R)==|CFFFFF569JT嫁祸WA|R(|CFFFF53A2"..(JTE.WADB and (JTE.WADB[WA_NAME] and JTE.WADB[WA_NAME].version or "未载入") or "ERROR").."|R)===")
+	local versionLine = "===|CFF1785D1JTE|R(|CFFFF53A2"..JTE.version.."|R)==|CFFFFF569JT嫁祸WA|R(|CFFFF53A2"..(JTE.WADB and (JTE.WADB[WA_NAME] and JTE.WADB[WA_NAME].version or "未载入") or "ERROR").."|R)==="
+	JTE_Print(totHeader..versionLine)
 	JTE_Print(totHeader.."输入 |CFFFFFFFF/JTE 嫁祸鼠标指向|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R |CFFFF53A2所有宏|R的鼠标指向功能")
 	JTE_Print(totHeader.."输入 |CFFFFFFFF/JTE 嫁祸鼠标指向 宏名称|R 可以单独 |CFF00FF00开启|R/|CFFFF0000关闭|R |CFFFFF569指定宏|R的鼠标指向功能")
 	JTE_Print(totHeader.."输入 |CFFFFFFFF/JTE 嫁祸超出距离密语|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R |CFFFF53A2所有宏|R的超出距离密语功能")
 	JTE_Print(totHeader.."输入 |CFFFFFFFF/JTE 嫁祸状态|R 可以|CFFFFF569查询当前的设置情况|R")
-	JTE_Print(totHeader.."其他功能请咨询其他玩家 祝游戏愉快 (|CFFFFFFFFJettie@SMTH|R - 字)")
+	JTE_Print(totHeader.."其他功能请咨询其他玩家 祝游戏愉快 - |CFFFFFFFFJettie@SMTH|R")
+	JTE_Print(totHeader..versionLine)
 end
 JTE.ToTCallHelp = CallHelp
 

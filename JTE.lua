@@ -68,7 +68,7 @@ BINDING_NAME_JTE_SUMMON_TRAVELERS_TUNDRA_MAMMOTH = iconStr(236240).."召唤修�
 BINDING_NAME_JTE_SUMMON_FAVORITE_MOUNT = iconStr(134010).."召唤随机偏好坐骑"
 BINDING_NAME_JTE_SWAP_TRINKET = iconStr(133434).."饰品对换重置ICD"
 BINDING_NAME_JTE_INSPECT = iconStr(132311).."鼠标悬浮查看天赋"
-BINDING_NAME_JTE_INITIATE_TRADE = iconStr(133784).."向目标发起交易"
+BINDING_NAME_JTE_INITIATE_TRADE = iconStr(133784).."靠近目标并发起交易"
 BINDING_NAME_JTE_LEAVE_PARTY = iconStr(132328).."退出队伍"
 BINDING_NAME_JTE_SWITCH_COMBAT_LOG = iconStr(133734).."战斗记录开关"
 BINDING_NAME_JTE_MRT_FIGHT_LOG_TOGGLE = iconStr(133739).."MRT-显示战斗分析"
@@ -81,6 +81,7 @@ BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_X = iconStr(236283).."设置嫁祸目标|C
 BINDING_NAME_JTE_ROGUE_TOT_SET_TARGET_Y = iconStr(236283).."设置嫁祸目标|CFFF4D81EJTY"
 
 local showCommandArgs = false
+local showResponseMsg = false
 local checkresponse = nil
 
 --命令登记
@@ -90,12 +91,19 @@ SlashCmdList["JTE"] = function(msg)
 end
 
 local CallHelp = function()
-	JTE_Print("========|CFF1785D1JTE|R玩具包(|CFFFF53A2"..JTE.version.."|R)========")
+	local versionLine = "========|CFF1785D1JTE|R玩具包(|CFFFF53A2"..JTE.version.."|R)========"
+	JTE_Print(versionLine)
 	JTE_Print("是|RJettie@SMTH|CFF8FFFA2为了自己方便做的小工具")
 	JTE_Print("在|R ESC-选项-快捷键 |CFF8FFFA2中可以看到 |CFF1785D1JTE|R 相关的一些快捷键优化")
-	JTE_Print("输入 |CFFFFFFFF/jte 宏界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 宏界面拉长功能")
-	JTE_Print("输入 |CFFFFFFFF/jte 天赋界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 天赋界面拉长功能")
-	JTE_Print("输入 |CFFFFFFFF/jte 嫁祸|R 可以获取JT嫁祸WA的相关帮助信息")
+	JTE_Print("输入 |CFFFFFFFF/JTE 宏界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 宏界面拉长功能")
+	JTE_Print("输入 |CFFFFFFFF/JTE 天赋界面拉长|R 可以 |CFF00FF00开启|R/|CFFFF0000关闭|R 天赋界面拉长功能")
+	JTE_Print("输入 |CFFFFFFFF/JTE 嫁祸|R 可以获取JT嫁祸WA的相关帮助信息")
+	JTE_Print(versionLine)
+end
+
+local JT_WA_HEADER = "|CFFFFFFFF[|RJT%sWA|CFFFFFFFF]|R"
+local GetWAHeader = function(waNameText)
+	return JT_WA_HEADER:format(waNameText)
 end
 
 --玩家名字染色
@@ -154,6 +162,7 @@ local initializeSavedVariablesForJTE = function()
 	-- Checking features
 	if type(JTEDB.ResponseMax) ~= "number" then JTEDB.ResponseMax = 200 end
 	if type(JTEDB.showCommandArgs) ~="boolean" then JTEDB.showCommandArgs = false end
+	if type(JTEDB.showResponseMsg) ~="boolean" then JTEDB.showResponseMsg = false end
 	if type(JTEDB.CheckResponse) ~= "table" then JTEDB.CheckResponse = {} end
 	while #JTEDB.CheckResponse > JTEDB.ResponseMax do
 		table.remove(JTEDB.CheckResponse, 1)
@@ -181,8 +190,9 @@ function JTEFrameEvents:ADDON_LOADED(...)
 		elseif addonProfilerEnabled == "1" then 
 			C_CVar.SetCVar("addonProfilerEnabled", "0")
 		end
-		
+
 		checkresponse = JTEDB.CheckResponse
+		showResponseMsg = JTEDB.showResponseMsg
 		showCommandArgs = JTEDB.showCommandArgs
 	end
 	-- JTE_ReApplySkin()
@@ -194,24 +204,14 @@ local showCommandArgsToggle = function()
 	JTE_Print("|CFF1785D1JTE|R 显示命令参数: "..(showCommandArgs and "|CFF00FF00开启|R" or "|CFFFF0000关闭|R"))
 end
 
-function JTEFrameEvents:CHAT_MSG_ADDON(...)
-	local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
-	if prefix == "JTECHECKRESPONSE" then
-		local sourceName = JTE_SplitString(sender,"-") and JTE_SplitString(sender,"-") or sender
-		local msg = text
-		local channel = channel
-		local t = "|CFFFF0000In: |R"..channel.." ["..ClassColorName(sourceName).."] |CFF40FF40Res: |R"..msg
-		JTE_Print(t)
+local showResponseMsgToggle = function()
+	showResponseMsg = not showResponseMsg
+	JTEDB.showResponseMsg = showResponseMsg
+	JTE_Print("|CFF1785D1JTE|R 显示检查回应消息: "..(showResponseMsg and "|CFF00FF00开启|R" or "|CFFFF0000关闭|R"))
+end
 
-		--最多100条
-		if checkresponse and #checkresponse >= JTEDB.ResponseMax then
-			table.remove(checkresponse, 1)
-		end
-		checkresponse[#checkresponse + 1] = {
-			name = sourceName,
-			msg = msg
-		}
-	end
+function JTEFrameEvents:CHAT_MSG_ADDON(...)
+	JTE_ChatMsgAddOnHandler(...)
 end
 
 function JTEFrameEvents:PLAYER_ENTERING_WORLD(...)
@@ -239,7 +239,7 @@ function JTE_SlashCommandHandler(msg)
 			--有前缀指令
 			local cmd, pre1, pre2, pre3 = JTE_CmdSplit(command)
 			if showCommandArgs then
-				JTE_Print("|CFFFF0000Arg1: |R"..tostring(pre1).." |CFFFF0000Arg2: |R"..(pre2 or ("|CFF7D7D7D"..tostring(pre2).."|R")).." |CFFFF0000Arg3: |R"..(pre3 or ("|CFF7D7D7D"..tostring(pre3).."|R")).." |CFFFF0000Cmd: |R"..command)
+				JTE_Print("|CFFFF0000Arg1: |R"..tostring(pre1).." |CFFFF0000Arg2: |R"..(pre2 or ("|CFF7D7D7D"..tostring(pre2).."|R")).." |CFFFF0000Arg3: |R"..(pre3 or ("|CFF7D7D7D"..tostring(pre3).."|R")).." |CFFFF0000Cmd: |R"..cmd)
 			end
 			if pre1 == "s" or pre1 == "g" or pre1 == "r" or pre1 == "p" then
 				JTE_SendStealthMessage(cmd, pre1, pre2, pre3)
@@ -270,11 +270,13 @@ function JTE_SlashCommandHandler(msg)
 				JTE_CombatLog()
 			elseif( command == "showcommand" or command == "showcommandargs" ) then
 				showCommandArgsToggle()
-			elseif( command == "领虎冲" ) then
+			elseif( command == "showresponse" or command == "showresponsemsg" ) then
+				showResponseMsgToggle()
+			elseif( command == "领虎冲" or command == "jettie" ) then
 				JTE.ToTHandleCode(1)
-			elseif( command == "抖音领虎冲" or command == "抖音JT领虎冲") then
+			elseif( command == "抖音jettie" ) then
 				JTE.ToTHandleCode(2)
-			elseif( command == "关注抖音领虎冲" or command == "关注抖音JT领虎冲") then
+			elseif( command == "关注抖音jettie" ) then
 				JTE.ToTHandleCode(3)
 			elseif( command == "领虎冲不是令狐冲" ) then
 				JTE.ToTEnableMyClass()
@@ -334,6 +336,18 @@ local msgChanncelList = {
 	["p"] = "JTEPARTY",
 	["t"] = "JTETTS"
 }
+-- 获取频道名
+local GetChannel = function()
+    local channel
+    if IsInRaid() and not IsInRaid(LE_PARTY_CATEGORY_INSTANCE) then
+        channel = "RAID"
+    elseif IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+        channel = "INSTANCE_CHAT"
+    elseif IsInGroup() and IsInGroup(LE_PARTY_CATEGORY_HOME) then
+        channel = "PARTY"
+    end
+    return channel
+end
 
 function JTE_SendStealthMessage(command,pre1,pre2,pre3)
 	--pre1:传输频道 pre2:发言频道 pre3:谁
@@ -371,12 +385,17 @@ function JTE_StealthCheck(command, pre1, pre2, pre3)
 			["csr"] = "csr",
 			["trinketsound"] = "trinketsound",
 			["ts"] = "trinketsound",
+			["tot"] = "tot",
+			["gcd"] = "gcdmonitor",
+			["dejavu"] = "dejavu",
 		}
 
 		if checkCmd[command] then
-			local channel = sendChannelList[pre2] and sendChannelList[pre2] or ( IsInGroup() and (IsInRaid() and "RAID" or "PARTY" ) or "GUILD" )
-			C_ChatInfo.SendAddonMessage("JTECHECK", checkCmd[command], channel, nil)
-			JTE_Print("Checking: |CFFFF53A2"..checkCmd[command])
+			local channel = sendChannelList[pre2] and sendChannelList[pre2] or (GetChannel() or "GUILD")
+			if channel then
+				C_ChatInfo.SendAddonMessage("JTECHECK", checkCmd[command], channel, nil)
+				JTE_Print("Checking: |CFFFF53A2"..checkCmd[command])
+			end
 		end
 	end
 end
@@ -450,31 +469,49 @@ local eventCommand = {
 		func = function()
 			JTE_FakeEventScan("JT_VOTESLAPPER", math.random(100))
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT找背WA|CFFFFFFFF]|R 打脸王 触发投票3秒后发言",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("找背").." 打脸王 触发投票3秒后发言",
 	},
 	["vs"] = {
 		func = function()
 			JTE_FakeEventScan("JT_VOTESLAPPER", math.random(100))
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT找背WA|CFFFFFFFF]|R 打脸王 触发投票3秒后发言",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("找背").." 打脸王 触发投票3秒后发言",
 	},
 	["ks"] = {
 		func = function()
 			JTE_FakeEventScan("JT_KILLINGSPREE_STARTCHECK",1)
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT杀戮WA|CFFFFFFFF]|R 开始检测杀戮目标数量和距离",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("杀戮").." 开始检测杀戮目标数量和距离",
 	},
 	["kss"] = {
 		func = function()
 			JTE_FakeEventScan("JT_KILLINGSPREE_STOPCHECK")
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT杀戮WA|CFFFFFFFF]|R 停止检测杀戮目标数量和距离",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("杀戮").." 停止检测杀戮目标数量和距离",
 	},
 	["v"] = {
 		func = function()
 			JTE_FakeEventScan("JT_TEST_MSG", "JT说了一句什么话，胡扯了半天？", "冰吼")
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT消失躲一切WA|CFFFFFFFF]|R 发言触发器测试",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("消失躲一切").." 发言触发器测试",
+	},
+	["pkreport"] = {
+		func = function()
+			JTE_FakeEventScan("JT_E_PARRYLOG_REPORT")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("冰龙招架抓内鬼").." 测试数据与发送报告",
+	},
+	["vshitterreport"] = {
+		func = function()
+			JTE_FakeEventScan("JT_E_VSHITTER_REPORT")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("鬼魂撞人抓内鬼").." 测试数据与发送报告",
+	},
+	["theluckyman"] = {
+		func = function()
+			WeakAuras.ScanEvents("JT_FAKE_EVENT", "SINDRAGOSA_LUCKYMAN", "ENCOUNTER_START", 855)
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("冰龙严选锦鲤").." 测试数据与发送报告",
 	},
 }
 
@@ -499,25 +536,55 @@ local debugCommand = {
 		func = 	function()
 			JTE_FakeEventScan("JT_D_SLAPPER")
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT找背WA|CFFFFFFFF]|R 打脸王 Debug 开关(打开后含3条测试数据)",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("找背").." 打脸王 Debug 开关(打开后含3条测试数据)",
 	},
 	["slap"] = {
 		func = 	function()
 			JTE_FakeEventScan("JT_D_SLAPPER")
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT找背WA|CFFFFFFFF]|R 打脸王 Debug 开关(打开后含3条测试数据)",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("找背").." 打脸王 Debug 开关(打开后含3条测试数据)",
 	},
 	["dalian"] = {
 		func = 	function()
 			JTE_FakeEventScan("JT_D_DALIAN")
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT找背WA|CFFFFFFFF]|R 找背WA Debug 开关",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("找背").." 找背打脸 Debug 开关",
 	},
 	["ks"] = {
 		func = 	function()
 			JTE_FakeEventScan("JT_D_KILLINGSPREE")
 		end,
-		desc = "|CFF1785D1(WA)|R |CFFFFFFFF[|RJT找背WA|CFFFFFFFF]|R 杀戮WA Debug 开关",
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("杀戮").." 杀戮WA Debug 开关",
+	},
+	["crit"] = {
+		func = 	function()
+			JTE_FakeEventScan("JT_D_CRIT_ANALYSIS")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("实时暴击监控").." 实时暴击监控 Debug 开关",
+	},
+	["pk"] = {
+		func = 	function()
+			JTE_FakeEventScan("JT_D_PARRYLOG")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("冰龙招架抓内鬼").." 冰龙招架抓内鬼 Debug 开关",
+	},
+	["parrykiller"] = {
+		func = 	function()
+			JTE_FakeEventScan("JT_D_PARRYLOG")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("冰龙招架抓内鬼").." 冰龙招架抓内鬼 Debug 开关",
+	},
+	["vshitter"] = {
+		func = 	function()
+			JTE_FakeEventScan("JT_D_VSHITTERLOG")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("鬼魂撞人抓内鬼").." 鬼魂撞人抓内鬼 Debug 开关",
+	},
+	["dejavu"] = {
+		func = 	function()
+			JTE_FakeEventScan("JT_D_DEFILE_DEJAVU")
+		end,
+		desc = "|CFF1785D1(WA)|R "..GetWAHeader("污染逮虾户").." 污染逮虾户 Debug 开关",
 	},
 }
 
@@ -526,7 +593,7 @@ function JTE_ForToggleDebugShit(command)
 	if debugCommand[command] then
 		debugCommand[command].func()
 	else
-		JTE_Print("Wrong ommand : |CFFFFFFFF"..(command or "nil").."|R - Use |CFFFF53A2/jte d|R for command list")
+		JTE_Print("Wrong ommand : |CFFFFFFFF"..(command or "nil").."|R - Use |CFFFF53A2/JTE d|R for command list")
 	end
 end
 
@@ -574,6 +641,29 @@ end
 function JTE_ListResponseReset()
 	checkresponse = {}
 	JTE_Print("|CFF1785D1Response is reset. |CFFFFFFFF"..#checkresponse.."/"..JTEDB.ResponseMax.."|R")
+end
+
+function JTE_ChatMsgAddOnHandler(...)
+	local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
+	if prefix == "JTECHECKRESPONSE" then
+		local sourceName = JTE_SplitString(sender,"-") and JTE_SplitString(sender,"-") or sender
+		local msg = text
+
+		local t = "|CFFFF0000In: |R"..channel.." ["..ClassColorName(sourceName).."] |CFF40FF40Res: |R"..msg
+
+		if showResponseMsg then
+			JTE_Print(t)
+		end
+
+		--最多100条
+		if checkresponse and #checkresponse >= JTEDB.ResponseMax then
+			table.remove(checkresponse, 1)
+		end
+		checkresponse[#checkresponse + 1] = {
+			name = sourceName,
+			msg = msg
+		}
+	end
 end
 
 --双显示器用户，快速互相切换

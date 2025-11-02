@@ -29,10 +29,10 @@ local kirinTorRings = {
 	[48956] = true,
 	[48957] = true,
 	--ilv 251
-	-- [51557] = true,
-	-- [51558] = true,
-	-- [51559] = true,
-	-- [51560] = true,
+	[51557] = true,
+	[51558] = true,
+	[51559] = true,
+	[51560] = true,
 }
 
 --测试物品名字，等ICC更新后再测一次删除
@@ -83,7 +83,8 @@ local OnUIErrorMessage = function(event, message)
 
 		if thisSlot then
 			local start, duration, enable = GetInventoryItemCooldown("player", thisSlot)
-			if enable == 1 and start > 0 then
+			local now = GetTime()
+			if enable == 1 and start > 0 and start + duration - 1 > now then
 				local timeLeft = start + duration - GetTime()
 				local kirinLink = thisItemId and GetItemInfo(thisItemId) or "[肯瑞托戒指]"
 				if KTR.waitToSwitchBack[thisSlot] then
@@ -104,7 +105,7 @@ local OnSpellCastSucceeded = function(...)
 		if next(KTR.waitToSwitchBack) then
 			local itemIdFinger1 = GetInventoryItemID("player", INVSLOT_FINGER1)
 			local itemIdFinger2 = GetInventoryItemID("player", INVSLOT_FINGER2)
-	
+
 			local thisSlot = kirinTorRings[itemIdFinger1] and INVSLOT_FINGER1 or (kirinTorRings[itemIdFinger2] and INVSLOT_FINGER2 or nil)
 			if thisSlot then
 				for k, v in pairs(KTR.waitToSwitchBack) do
@@ -135,6 +136,30 @@ local OnEquipmentChanged = function(equipmentSlot, hasCurrent)
 			local itemLink = select(2, GetItemInfo(newId))
 			local previousItemLink = select(2, GetItemInfo(KTR.waitToSwitchBack[equipmentSlot]))
 			JTE_Print("已佩戴 "..(itemLink or "[肯瑞托戒指]").. " 等待传送后换回 "..(previousItemLink or "之前的戒指"))
+
+            if GetItemCooldown(newId) > 0 and not IsAltKeyDown() then
+				-- 物品冷却中
+				-- 肯瑞托戒指
+				local itemIdFinger1 = GetInventoryItemID("player", INVSLOT_FINGER1)
+				local itemIdFinger2 = GetInventoryItemID("player", INVSLOT_FINGER2)
+
+				local thisItemId = kirinTorRings[itemIdFinger1] and itemIdFinger1 or (kirinTorRings[itemIdFinger2] and itemIdFinger2 or nil)
+				local thisSlot = kirinTorRings[itemIdFinger1] and INVSLOT_FINGER1 or (kirinTorRings[itemIdFinger2] and INVSLOT_FINGER2 or nil)
+
+				if thisSlot then
+					local start, duration, enable = GetInventoryItemCooldown("player", thisSlot)
+						if enable == 1 and start > 0 then
+							local timeLeft = start + duration - GetTime()
+							local kirinLink = thisItemId and GetItemInfo(thisItemId) or "[肯瑞托戒指]"
+						if KTR.waitToSwitchBack[thisSlot] then
+							EquipItemByName(KTR.waitToSwitchBack[thisSlot], thisSlot)
+							JTE_Print(kirinLink.."冷却中，剩余时间: |CFFFFFFFF"..secondsToTimeStr(timeLeft).."|R 秒, 已自动换回之前的"..previousItemLink.."(按住 |CFFFFFFFFAlt|R 键拖到装备栏强制穿戴)")
+							KTR.waitToSwitchBack[thisSlot] = nil
+						end
+					end
+				end
+            end
+
 			KTRFrame:RegisterEvent("UI_ERROR_MESSAGE")
 			-- ERR_ITEM_COOLDOWN = "物品还没有准备好。"
 			KTRFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
